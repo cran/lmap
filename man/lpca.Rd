@@ -2,8 +2,7 @@
 % Please edit documentation in R/lpca.R
 \name{lpca}
 \alias{lpca}
-\title{The function lpca performs logistic pca with or without predictors to obtain
- a unsupervised or supervised mapping of binary response variables.}
+\title{Logistic (Restricted) PCA}
 \usage{
 lpca(
   Y,
@@ -13,7 +12,7 @@ lpca(
   eq = FALSE,
   lambda = FALSE,
   maxiter = 65536,
-  dcrit = 1e-05
+  dcrit = 1e-06
 )
 }
 \arguments{
@@ -21,7 +20,7 @@ lpca(
 
 \item{X}{An N by P matrix with predictor variables}
 
-\item{S}{Positive number indicating the dimensionality of teh solution}
+\item{S}{Positive number indicating the dimensionality of the solution}
 
 \item{dim.indic}{An R by S matrix indicating which response variable pertains to which dimension}
 
@@ -35,6 +34,7 @@ lpca(
 }
 \value{
 This function returns an object of the class \code{lpca} with components:
+\item{call}{Call to the function}
 \item{Y}{Matrix Y from input}
 \item{Xoriginal}{Matrix X from input}
 \item{X}{Scaled X matrix}
@@ -49,6 +49,9 @@ This function returns an object of the class \code{lpca} with components:
 \item{V}{matrix with vectors for items/responses}
 \item{iter}{number of main iterations from the MM algorithm}
 \item{deviance}{value of the deviance at convergence}
+\item{npar}{number of estimated parameters}
+\item{AIC}{Akaike's Information Criterion}
+\item{BIC}{Bayesian Information Criterion}
 }
 \description{
 This function runs:
@@ -56,12 +59,13 @@ logistic principal component analysis (if X = NULL)
 logistic reduced rank regression (if X != NULL)
 }
 \examples{
+\dontrun{
 data(dataExample_lpca)
-Y = as.matrix(dataExample_lpca[1:20 , 1:8])
-X = as.matrix(dataExample_lpca[1:20 , 9:13])
+Y = as.matrix(dataExample_lpca[, 1:8])
+X = as.matrix(dataExample_lpca[, 9:13])
 # unsupervised
 output = lpca(Y = Y, S = 2)
-
+}
 
 
 }

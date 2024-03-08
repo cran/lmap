@@ -12,10 +12,10 @@ fastmbu(
   XV = NULL,
   BV = NULL,
   mains = TRUE,
-  MAXITER = 65536,
-  DCRIT = 1e-06,
   MAXINNER = 32,
-  FCRIT = 0.001
+  FCRIT = 0.001,
+  MAXITER = 65536,
+  DCRIT = 1e-06
 )
 }
 \arguments{
@@ -33,13 +33,13 @@ fastmbu(
 
 \item{mains}{whether offsets for the items should be estimated}
 
-\item{MAXITER}{maximum number of iterations in the outer loop}
-
-\item{DCRIT}{convergence criterion for the deviance}
-
 \item{MAXINNER}{maximum number of iterations in the inner loop}
 
 \item{FCRIT}{convergence criterion for STRESS in the inner loop}
+
+\item{MAXITER}{maximum number of iterations in the outer loop}
+
+\item{DCRIT}{convergence criterion for the deviance}
 }
 \value{
 U estimated coordinate matrix for row objects

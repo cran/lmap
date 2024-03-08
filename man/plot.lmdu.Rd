@@ -2,9 +2,7 @@
 % Please edit documentation in R/plot.lmdu.R
 \name{plot.lmdu}
 \alias{plot.lmdu}
-\title{plots the results of a
-logistic multidimensional unfolding (X = NULL)
-logistic restricted multidimensional unfolding (X != NULL)}
+\title{Plots a Logistic MDU model}
 \usage{
 \method{plot}{lmdu}(
   x,
@@ -32,16 +30,16 @@ logistic restricted multidimensional unfolding (X != NULL)}
 Plot of the results obtained from lmdu
 }
 \description{
-plots the results of a
-logistic multidimensional unfolding (X = NULL)
-logistic restricted multidimensional unfolding (X != NULL)
+Plots a Logistic MDU model
 }
 \examples{
+\dontrun{
 data(dataExample_lmdu)
-Y = as.matrix(dataExample_lmdu[1:20 , 1:8])
-X = as.matrix(dataExample_lmdu[1:20 , 9:13])
+Y = as.matrix(dataExample_lmdu[ , 1:8])
+X = as.matrix(dataExample_lmdu[ , 9:13])
 # unsupervised
 output = lmdu(Y = Y, S = 2)
 plot(output)
+}
 
 }

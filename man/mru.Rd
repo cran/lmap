@@ -2,8 +2,7 @@
 % Please edit documentation in R/mru.R
 \name{mru}
 \alias{mru}
-\title{The function mru performs multinomial restricted unfolding for a nominal response
-variable and a set of predictor variables.}
+\title{Multinomial Restricted MDU}
 \usage{
 mru(y, X, S = 2, start = "da", maxiter = 65536, dcrit = 1e-05)
 }
@@ -52,9 +51,11 @@ The function mru performs multinomial restricted unfolding for a nominal respons
 variable and a set of predictor variables.
 }
 \examples{
+\dontrun{
 data(dataExample_mru)
 y = as.matrix(dataExample_mru[1:20 , 1])
 X = as.matrix(dataExample_mru[1:20 , 2:6])
 output = mru(y = y, X = X, S = 2)
+}
 
 }

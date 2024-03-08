@@ -1,5 +1,4 @@
-#'  The function lpca performs logistic pca with or without predictors to obtain
-#'  a unsupervised or supervised mapping of binary response variables.
+#'  Logistic (Restricted) PCA
 #'
 #' This function runs:
 #' logistic principal component analysis (if X = NULL)
@@ -7,7 +6,7 @@
 #'
 #' @param Y An N times R binary matrix  .
 #' @param X An N by P matrix with predictor variables
-#' @param S Positive number indicating the dimensionality of teh solution
+#' @param S Positive number indicating the dimensionality of the solution
 #' @param dim.indic An R by S matrix indicating which response variable pertains to which dimension
 #' @param eq Only applicable when dim.indic not NULL; equality restriction on regression weighhts per dimension
 #' @param lambda if TRUE does lambda scaling (see Understanding Biplots, p24)
@@ -15,6 +14,7 @@
 #' @param dcrit convergence criterion
 #'
 #' @return This function returns an object of the class \code{lpca} with components:
+#' \item{call}{Call to the function}
 #' \item{Y}{Matrix Y from input}
 #' \item{Xoriginal}{Matrix X from input}
 #' \item{X}{Scaled X matrix}
@@ -29,23 +29,27 @@
 #' \item{V}{matrix with vectors for items/responses}
 #' \item{iter}{number of main iterations from the MM algorithm}
 #' \item{deviance}{value of the deviance at convergence}
+#' \item{npar}{number of estimated parameters}
+#' \item{AIC}{Akaike's Information Criterion}
+#' \item{BIC}{Bayesian Information Criterion}
 #'
 #' @examples
+#' \dontrun{
 #' data(dataExample_lpca)
-#' Y = as.matrix(dataExample_lpca[1:20 , 1:8])
-#' X = as.matrix(dataExample_lpca[1:20 , 9:13])
+#' Y = as.matrix(dataExample_lpca[, 1:8])
+#' X = as.matrix(dataExample_lpca[, 9:13])
 #' # unsupervised
 #' output = lpca(Y = Y, S = 2)
+#' }
 #'
 #'
-#'
-#' @import tidyverse
 #' @importFrom stats plogis
 #'
 #' @export
-lpca <- function(Y, X = NULL, S = 2, dim.indic = NULL, eq = FALSE, lambda = FALSE, maxiter = 65536, dcrit = 1e-5){
+lpca <- function(Y, X = NULL, S = 2, dim.indic = NULL, eq = FALSE, lambda = FALSE, maxiter = 65536, dcrit = 1e-6){
 
 
+  cal = match.call()
   # checks
   if ( is.null( Y ) ) stop( "missing response variable matrix Y")
   if( ! is.null(X)) if ( nrow(Y) != nrow(X) ) stop( "number of rows in X and Y should match")
@@ -77,6 +81,8 @@ lpca <- function(Y, X = NULL, S = 2, dim.indic = NULL, eq = FALSE, lambda = FALS
     U = matrix(0, N, S)
     V = matrix(0, R, S)
 
+    npar = (N + R - S) * S
+
     # compute deviance
     theta = outer(rep(1, N), m)
     dev.old <- -2 * sum(log(plogis(Q * theta)))
@@ -86,7 +92,7 @@ lpca <- function(Y, X = NULL, S = 2, dim.indic = NULL, eq = FALSE, lambda = FALS
       Z = as.matrix(theta + 4 * Q * (1 - plogis(Q * theta)))
 
       # update main effects
-      m = as.numeric(colMeans(Z))
+      m = as.numeric(colMeans(Z - U %*% t(V)))
 
       # update U and V
       udv = svd(scale(Z, center = m, scale = FALSE))
@@ -127,10 +133,10 @@ lpca <- function(Y, X = NULL, S = 2, dim.indic = NULL, eq = FALSE, lambda = FALS
     }
 
     Xoriginal = X
-    # center X
-    X = as.matrix(scale(X, center = TRUE, scale = TRUE))
-    mx = attr(X, "scaled:center")
-    sdx = attr(X, "scaled:scale")
+    outx = procx(X)
+    X = outx$X
+    mx = outx$mx
+    sdx = outx$sdx
     P = ncol(X)
 
     #
@@ -139,6 +145,7 @@ lpca <- function(Y, X = NULL, S = 2, dim.indic = NULL, eq = FALSE, lambda = FALS
     iXXX = solve(t(X) %*% X) %*% t(X)
     iRx = solve(Rx)
     iRxX = iRx %*% t(X)
+	npar = (P + R - S) * S
 
 
     # starting values
@@ -155,7 +162,7 @@ lpca <- function(Y, X = NULL, S = 2, dim.indic = NULL, eq = FALSE, lambda = FALS
       Z = as.matrix(theta + 4 * Q * (1 - plogis(Q * theta)))
 
       # update main effects
-      m = as.numeric(colMeans(Z))
+      m = as.numeric(colMeans(Z - X %*% B %*% t(V)))
 
       # update B and V
       if( is.null(dim.indic) ){
@@ -187,8 +194,9 @@ lpca <- function(Y, X = NULL, S = 2, dim.indic = NULL, eq = FALSE, lambda = FALS
     U = X %*% B
   }
 
-  # create output object of class "l.pca"
+  # create output object of class "lpca"
   output = list(
+	call = cal,
     Y = Y,
     Xoriginal = Xoriginal,
     X = X,
@@ -202,7 +210,10 @@ lpca <- function(Y, X = NULL, S = 2, dim.indic = NULL, eq = FALSE, lambda = FALS
     B = B,
     V = V,
     iter = iter,
-    deviance = dev.new
+    deviance = dev.new,
+    npar = npar,
+    AIC = dev.new + 2 * npar,
+    BIC = dev.new + log(N) * npar
   )
   class(output) = "lpca"
   return(output)

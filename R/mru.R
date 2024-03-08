@@ -1,3 +1,5 @@
+#' Multinomial Restricted MDU
+#'
 #' The function mru performs multinomial restricted unfolding for a nominal response
 #' variable and a set of predictor variables.
 #'
@@ -22,12 +24,13 @@
 #' @return deviance value of the deviance at convergence
 #'
 #' @examples
+#' \dontrun{
 #' data(dataExample_mru)
 #' y = as.matrix(dataExample_mru[1:20 , 1])
 #' X = as.matrix(dataExample_mru[1:20 , 2:6])
 #' output = mru(y = y, X = X, S = 2)
+#' }
 #'
-#' @import tidyverse
 #' @importFrom nnet class.ind
 #' @importFrom stats runif
 #'

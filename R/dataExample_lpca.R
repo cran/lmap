@@ -11,11 +11,11 @@
 #'   \item{\code{Y6}}{Dichotomous variable 6.}
 #'   \item{\code{Y7}}{Dichotomous variable 7.}
 #'   \item{\code{Y8}}{Dichotomous variable 8.}
-#'   \item{\code{X1}}{Continuous variale 1.}
-#'   \item{\code{X2}}{Continuous variale 2.}
-#'   \item{\code{X3}}{Continuous variale 3.}
-#'   \item{\code{X4}}{Continuous variale 4.}
-#'   \item{\code{X5}}{Continuous variale 5.}
+#'   \item{\code{X1}}{Continuous variable 1.}
+#'   \item{\code{X2}}{Continuous variable 2.}
+#'   \item{\code{X3}}{Continuous variable 3.}
+#'   \item{\code{X4}}{Continuous variable 4.}
+#'   \item{\code{X5}}{Continuous variable 5.}
 #'  }
 #'
 "dataExample_lpca"

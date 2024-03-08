@@ -2,8 +2,7 @@
 % Please edit documentation in R/lmdu.R
 \name{lmdu}
 \alias{lmdu}
-\title{The function lmdu performs logistic mdu with or without predictors to obtain
-a unsupervised or supervised mapping of binary response variables.}
+\title{Logistic (Restricted) MDU}
 \usage{
 lmdu(
   Y,
@@ -12,7 +11,7 @@ lmdu(
   S = 2,
   start = "svd",
   maxiter = 65536,
-  dcrit = 1e-05
+  dcrit = 1e-06
 )
 }
 \arguments{
@@ -32,6 +31,26 @@ lmdu(
 }
 \value{
 deviance
+\item{call}{Call to the function}
+\item{Yoriginal}{Matrix Y from input}
+\item{Y}{Matrix Y from input}
+\item{f}{frequencies of rows of Y}
+\item{Xoriginal}{Matrix X from input}
+\item{X}{Scaled X matrix}
+\item{mx}{Mean values of X}
+\item{sdx}{Standard deviations of X}
+\item{ynames}{Variable names of responses}
+\item{xnames}{Variable names of predictors}
+\item{probabilities}{Estimated values of Y}
+\item{m}{main effects}
+\item{U}{matrix with coordinates for row-objects}
+\item{B}{matrix with regression weight (U = XB)}
+\item{V}{matrix with vectors for items/responses}
+\item{iter}{number of main iterations from the MM algorithm}
+\item{deviance}{value of the deviance at convergence}
+\item{npar}{number of estimated parameters}
+\item{AIC}{Akaike's Information Criterion}
+\item{BIC}{Bayesian Information Criterion}
 }
 \description{
 This function runs:
@@ -39,10 +58,14 @@ logistic multidimensional unfolding (if X = NULL)
 logistic restricted multidimensional unfolding (if X != NULL)
 }
 \examples{
+\dontrun{
 data(dataExample_lmdu)
-Y = as.matrix(dataExample_lmdu[1:20 , 1:8])
-X = as.matrix(dataExample_lmdu[1:20 , 9:13])
+Y = as.matrix(dataExample_lmdu[ , 1:8])
+X = as.matrix(dataExample_lmdu[ , 9:13])
 # unsupervised
 output = lmdu(Y = Y, S = 2)
+# supervised
+output2 = lmdu(Y = Y, X = X, S = 2)
+}
 
 }

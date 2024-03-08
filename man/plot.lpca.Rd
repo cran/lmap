@@ -2,14 +2,12 @@
 % Please edit documentation in R/plot.lpca.R
 \name{plot.lpca}
 \alias{plot.lpca}
-\title{plots the results of a
-logistic principal component analysis (X = NULL)
-logistic reduced rank regression (X != NULL)}
+\title{Plots a Logistic PCA Model}
 \usage{
 \method{plot}{lpca}(
   x,
   dims = c(1, 2),
-  type = "pca",
+  type = "H",
   ycol = "darkgreen",
   xcol = "lightskyblue",
   ocol = "grey",
@@ -21,7 +19,7 @@ logistic reduced rank regression (X != NULL)}
 
 \item{dims}{which dimensions to visualize}
 
-\item{type}{either pca or dist}
+\item{type}{either H (hybrid), I (inner product/pca), or D (distance/melodic)}
 
 \item{ycol}{colour for representation of response variables}
 
@@ -35,17 +33,16 @@ logistic reduced rank regression (X != NULL)}
 Plot of the results obtained from lpca
 }
 \description{
-plots the results of a
-logistic principal component analysis (X = NULL)
-logistic reduced rank regression (X != NULL)
+Plots a Logistic PCA Model
 }
 \examples{
+\dontrun{
 data(dataExample_lpca)
-Y = as.matrix(dataExample_lpca[1:20 , 1:8])
-X = as.matrix(dataExample_lpca[1:20 , 9:13])
+Y = as.matrix(dataExample_lpca[, 1:8])
+X = as.matrix(dataExample_lpca[, 9:13])
 # unsupervised
 output = lpca(Y = Y, S = 2)
 plot(output)
-
+}
 
 }

@@ -9,10 +9,11 @@ fastmru(
   X = NULL,
   B = NULL,
   V = NULL,
+  MAXINNER = 32,
+  FCRIT = 0.001,
   MAXITER = 65536,
   DCRIT = 1e-06,
-  MAXINNER = 32,
-  FCRIT = 0.001
+  error.check = FALSE
 )
 }
 \arguments{
@@ -24,13 +25,15 @@ fastmru(
 
 \item{V}{starting values for class locations}
 
+\item{MAXINNER}{maximum number of iterations in the inner loop}
+
+\item{FCRIT}{convergence criterion for STRESS in the inner loop}
+
 \item{MAXITER}{maximum number of iterations in the outer loop}
 
 \item{DCRIT}{convergence criterion for the deviance}
 
-\item{MAXINNER}{maximum number of iterations in the inner loop}
-
-\item{FCRIT}{convergence criterion for STRESS in the inner loop}
+\item{error.check}{extensive check validity input parameters (default = FALSE).}
 }
 \value{
 B estimated regression weights

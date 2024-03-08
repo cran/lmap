@@ -2,13 +2,12 @@
 % Please edit documentation in R/plot.mru.R
 \name{plot.mru}
 \alias{plot.mru}
-\title{plots the results of a
-multinomial restricted unfolding}
+\title{Plots a Multinomial Restricted MDU model}
 \usage{
 \method{plot}{mru}(
   x,
   dims = c(1, 2),
-  ynames = NULL,
+  class.regions = FALSE,
   ycol = "darkgreen",
   xcol = "lightskyblue",
   ocol = "grey",
@@ -20,7 +19,7 @@ multinomial restricted unfolding}
 
 \item{dims}{which dimensions to visualize}
 
-\item{ynames}{names of the response variables}
+\item{class.regions}{whether a voronoi diagram with classification regions should be included}
 
 \item{ycol}{colour for representation of response variables}
 
@@ -34,14 +33,15 @@ multinomial restricted unfolding}
 Plot of the results obtained from mru
 }
 \description{
-plots the results of a
-multinomial restricted unfolding
+Plots a Multinomial Restricted MDU model
 }
 \examples{
+\dontrun{
 data(dataExample_mru)
-y = as.matrix(dataExample_mru[1:20 , 1])
-X = as.matrix(dataExample_mru[1:20 , 2:6])
+y = as.matrix(dataExample_mru[ , 1])
+X = as.matrix(dataExample_mru[ , 2:6])
 output = mru(y = y, X = X, S = 2)
 plot(output)
+}
 
 }
