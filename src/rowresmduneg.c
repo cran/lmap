@@ -4,7 +4,6 @@
 // This is a permissive non-copyleft free software license that is compatible with the GNU GPL.
 //
 
-#include "flib.h"
 #include "fmdu.h"
 
 double rowresmduneg( const size_t n, const size_t m, double** delta, const size_t p, const size_t h, double** q, double** b, double** y, int** fy, double** d, const size_t MAXITER, const double FCRIT, size_t* lastiter, double* lastdif, const bool echo )
@@ -41,7 +40,7 @@ double rowresmduneg( const size_t n, const size_t m, double** delta, const size_
   for ( size_t j = 1; j <= m; j++ ) for ( size_t k = 1; k <= p; k++ ) nfy += fy[j][k];
 
   // update distances and calculate normalized stress
-  gemm( false, false, n, p, h, 1.0, q, b, 0.0, x );
+  dgemm( false, false, n, p, h, 1.0, q, b, 0.0, x );
   euclidean2( n, p, x, m, y, d );
   double fold = 0.0;
   for ( size_t i = 1; i <= n; i++ ) {
@@ -109,8 +108,8 @@ double rowresmduneg( const size_t n, const size_t m, double** delta, const size_
       }
     }
     inverse( h, hhh );
-    gemm( true, false, h, m, n, 1.0, q, imw, 0.0, hhm );
-    gemm( false, false, h, p, m, 1.0, hhm, y, 0.0, hhp );
+    dgemm( true, false, h, m, n, 1.0, q, imw, 0.0, hhm );
+    dgemm( false, false, h, p, m, 1.0, hhm, y, 0.0, hhp );
     for ( size_t i = 1; i <= h; i++ ) {
       for ( size_t j = 1; j <= p; j++ ) {
         double work = 0.0;
@@ -118,13 +117,13 @@ double rowresmduneg( const size_t n, const size_t m, double** delta, const size_
         hhp[i][j] += work;
       }
     }
-    gemm( false, false, h, p, h, 1.0, hhh, hhp, 0.0, b );
+    dgemm( false, false, h, p, h, 1.0, hhh, hhp, 0.0, b );
 
     // update x
-    gemm( false, false, n, p, h, 1.0, q, b, 0.0, x );
+    dgemm( false, false, n, p, h, 1.0, q, b, 0.0, x );
 
     // update y
-    gemm( true, false, m, p, n, 1.0, imw, x, 0.0, hmp );
+    dgemm( true, false, m, p, n, 1.0, imw, x, 0.0, hmp );
     for ( size_t i = 1; i <= m; i++ ) {
       double csw = 0.0;
       for ( size_t j = 1; j <= n; j++ ) csw += imw[j][i];

@@ -40,8 +40,8 @@ double mulvarbinresmduneg( const size_t n, const size_t r, double** y, const siz
   }
 
   // compute initial deviance
-  gemm( false, false, n, m, pu, 1.0, xu, bu, 0.0, u );
-  gemm( false, false, r, m, pv, 1.0, xv, bv, 0.0, v );
+  dgemm( false, false, n, m, pu, 1.0, xu, bu, 0.0, u );
+  dgemm( false, false, r, m, pv, 1.0, xv, bv, 0.0, v );
   euclidean2( n, m, u, r, v, d );
   for ( size_t j = 1; j <= r; j++ ) {
     double work = mu[j];
@@ -115,8 +115,8 @@ double mulvarbinresmduneg( const size_t n, const size_t r, double** y, const siz
   ( *lastiter ) = iter;
 
   // rotate solution to principal axes
-  gemm( false, false, n, m, pu, 1.0, xu, bu, 0.0, u );
-  gemm( false, false, r, m, pv, 1.0, xv, bv, 0.0, v );
+  dgemm( false, false, n, m, pu, 1.0, xu, bu, 0.0, u );
+  dgemm( false, false, r, m, pv, 1.0, xv, bv, 0.0, v );
   rotateplusplus( n, m, u, pu, bu, pv, bv );
 
   // de-allocate memory

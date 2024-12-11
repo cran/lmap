@@ -4,16 +4,14 @@
 // This is a permissive non-copyleft free software license that is compatible with the GNU GPL.
 //
 
-#include "flib.h"
 #include "fmdu.h"
-
 
 double rowresmdu( const size_t n, const size_t m, double** delta, const size_t p, const size_t h, double** q, double** b, double** y, int** fy, double** d, const size_t MAXITER, const double FCRIT, size_t* lastiter, double* lastdif, const bool echo )
 // Function rowresmdu() performs row restricted weighted multidimensional unfolding.
 {
-  const double EPS = DBL_EPSILON;                                          // 2.2204460492503131e-16
-  const double TOL = sqrt( EPS );                                          // 1.4901161193847656e-08
-  const double CRIT = sqrt( TOL );                                         // 0.00012207031250000000
+  const double EPS = DBL_EPSILON;                                              // 2.2204460492503131e-16
+  const double TOL = sqrt( EPS );                                              // 1.4901161193847656e-08
+  const double CRIT = sqrt( TOL );                                             // 0.00012207031250000000
   const double TINY = pow( 10.0, ( log10( EPS ) + log10( TOL ) ) / 2.0 );  // 1.8189894035458617e-12
 
   // allocate memory
@@ -53,7 +51,7 @@ double rowresmdu( const size_t n, const size_t m, double** delta, const size_t p
   for ( size_t j = 1; j <= m; j++ ) for ( size_t k = 1; k <= p; k++ ) nfy += fy[j][k];
 
   // update distances and calculate normalized stress
-  gemm( false, false, n, p, h, 1.0, q, b, 0.0, x );
+  dgemm( false, false, n, p, h, 1.0, q, b, 0.0, x );
   euclidean2( n, p, x, m, y, d );
   double fold = 0.0;
   for ( size_t i = 1; i <= n; i++ ) {
@@ -98,7 +96,7 @@ double rowresmdu( const size_t n, const size_t m, double** delta, const size_t p
     }
 
     // update b
-    gemm( false, false, h, p, m, 1.0, hhm, y, 0.0, hhp );
+    dgemm( false, false, h, p, m, 1.0, hhm, y, 0.0, hhp );
     for ( size_t i = 1; i <= h; i++ ) {
       for ( size_t j = 1; j <= p; j++ ) {
         double work = 0.0;
@@ -106,10 +104,10 @@ double rowresmdu( const size_t n, const size_t m, double** delta, const size_t p
         hhp[i][j] += work;
       }
     }
-    gemm( false, false, h, p, h, 1.0, hhh, hhp, 0.0, b );
+    dgemm( false, false, h, p, h, 1.0, hhh, hhp, 0.0, b );
 
     // update x
-    gemm( false, false, n, p, h, 1.0, q, b, 0.0, x );
+    dgemm( false, false, n, p, h, 1.0, q, b, 0.0, x );
 
     // update y
     for ( size_t k = 1; k <= p; k++ ) {

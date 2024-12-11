@@ -71,7 +71,7 @@ mru = function(y, X, S = 2, start = "da", maxiter = 65536, dcrit = 1e-5)
   }
 
   # call C-code
-  res = fastmru(G = G, X = X, B = B, V = V, DCRIT = dcrit)
+  res = fastmru(G = G, X = X, B = B, Z = V, DCRIT = dcrit)
 
   # make output object
   output = list(

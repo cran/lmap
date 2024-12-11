@@ -8,7 +8,7 @@
 #include "fmdu.h"
 #include "lmap.h"
 
-double mulnomrowresmduneg( const size_t n, const size_t nc, double** g, const size_t m, const size_t px, double** x, double** b, double** v, double** theta, const size_t MAXINNER, const double FCRIT, const size_t MAXITER, const double DCRIT, size_t* lastiter, double* lastdif )
+double mulnomresmduneg( const size_t n, const size_t nc, double** g, const size_t m, const size_t px, double** x, double** b, const size_t pz, double** z, double** c, double** theta, const size_t MAXINNER, const double FCRIT, const size_t MAXITER, const double DCRIT, size_t* lastiter, double* lastdif )
 // mulnomrowresmduneg() performs multinomial row restricted unfolding allowing negative dissimilarities.
 {
   // constants
@@ -18,12 +18,13 @@ double mulnomrowresmduneg( const size_t n, const size_t nc, double** g, const si
 
   // allocate memory
   double** u = getmatrix( n, m, 0.0 );
+  double** v = getmatrix( nc, m, 0.0 );
   double** pi = getmatrix( n, nc, 0.0 );
   double** delta = getmatrix( n, nc, 0.0 );
-  int** fv = getimatrix( nc, m, 0 );
 
   // initialization: u, based on x and b, and pi, based on theta
   dgemm( false, false, n, m, px, 1.0, x, b, 0.0, u );
+  dgemm( false, false, nc, m, pz, 1.0, z, c, 0.0, v );
   euclidean2( n, m, u, nc, v, theta );
   for ( size_t i = 1; i <= n; i++ ) {
     double sum = 0.0;
@@ -56,9 +57,7 @@ double mulnomrowresmduneg( const size_t n, const size_t nc, double** g, const si
     // row restricted mdu allowing negative dissimilarities or not (faster)
     size_t inner = 0;
     double fdif = 0.0;
-    rowresmduneg( n, nc, delta, m, px, x, b, v, fv, theta, MAXINNER, FCRIT, &inner, &fdif, false );
-																											
-																						  
+    resmduneg( n, nc, delta, m, px, x, b, pz, z, c, theta, MAXINNER, FCRIT, &inner, &fdif, false );
     if ( fdif < -1.0 * CRIT ) break;
 
     // compute new pi
@@ -84,37 +83,34 @@ double mulnomrowresmduneg( const size_t n, const size_t nc, double** g, const si
   }
   ( *lastiter ) = iter;
 
-  // rotate solution to principal axes
-  dgemm( false, false, n, m, px, 1.0, x, b, 0.0, u );
-  rotateplusplus( n, m, u, nc, v, px, b );
-
   // de-allocate memory
   freematrix( u );
+  freematrix( v );
   freematrix( pi );
   freematrix( delta );
-  freeimatrix( fv );
 
   return( dnew );
-} // mulnomrowresrmduneg
+} // mulnomresmduneg
 
-void Cmulnomrowresmduneg( int* rn, int* rnc, double* rg, int* rm, int* rpx, double* rx, double* rb, double* rv, double* rtheta, int* rmaxinner, double* rfcrit, int* rmaxiter, double* rdcrit, double* rdeviance )
-// Cmulnomrowresmduneg() performs multinomial row restricted unfolding allowing negative dissimilarities.
+void Cmulnomresmduneg( int* rn, int* rnc, double* rg, int* rm, int* rpx, double* rx, double* rb, int* rpz, double* rz, double* rc, double* rtheta, int* rmaxinner, double* rfcrit, int* rmaxiter, double* rdcrit, double* rdeviance )
+// Cmulnomresmduneg() performs multinomial row restricted unfolding allowing negative dissimilarities.
 {
   // transfer to C
   const size_t n = *rn;
   const size_t nc = *rnc;
-					   
   const size_t m = *rm;
   const size_t px = *rpx;
+  const size_t pz = *rpz;
   double** g = getmatrix( n, nc, 0.0 );
   for ( size_t j = 1, k = 0; j <= nc; j++ ) for ( size_t i = 1; i <= n; i++, k++ ) g[i][j] = rg[k];
   double** x = getmatrix( n, px, 0.0 );
   for ( size_t j = 1, k = 0; j <= px; j++ ) for ( size_t i = 1; i <= n; i++, k++ ) x[i][j] = rx[k];
   double** b = getmatrix( px, m, 0.0 );
   for ( size_t j = 1, k = 0; j <= m; j++ ) for ( size_t i = 1; i <= px; i++, k++ ) b[i][j] = rb[k];
-  double** v = getmatrix( nc, m, 0.0 );
-  for ( size_t j = 1, k = 0; j <= m; j++ ) for ( size_t i = 1; i <= nc; i++, k++ ) v[i][j] = rv[k];
-  double** u = getmatrix( n, m, 0.0 );
+  double** z = getmatrix( nc, pz, 0.0 );
+  for ( size_t j = 1, k = 0; j <= pz; j++ ) for ( size_t i = 1; i <= nc; i++, k++ ) z[i][j] = rz[k];
+  double** c = getmatrix( pz, m, 0.0 );
+  for ( size_t j = 1, k = 0; j <= m; j++ ) for ( size_t i = 1; i <= pz; i++, k++ ) c[i][j] = rc[k];
   double** theta = getmatrix( n, nc, 0.0 );
   const size_t MAXITER = *rmaxiter;
   const double DCRIT = *rdcrit;
@@ -124,12 +120,11 @@ void Cmulnomrowresmduneg( int* rn, int* rnc, double* rg, int* rm, int* rpx, doub
   // analysis
   size_t lastiter = 0;
   double lastdif = 0.0;
-  const double dnew = mulnomrowresmduneg( n, nc, g, m, px, x, b, v, theta, MAXINNER, FCRIT, MAXITER, DCRIT, &lastiter, &lastdif );
+  const double dnew = mulnomresmduneg( n, nc, g, m, px, x, b, pz, z, c, theta, MAXINNER, FCRIT, MAXITER, DCRIT, &lastiter, &lastdif );
 
   // transfer to R
   for ( size_t j = 1, k = 0; j <= m; j++ ) for ( size_t i = 1; i <= px; i++, k++ ) rb[k] = b[i][j];
-  for ( size_t j = 1, k = 0; j <= m; j++ ) for ( size_t i = 1; i <= nc; i++, k++ ) rv[k] = v[i][j];
-																								  
+  for ( size_t j = 1, k = 0; j <= m; j++ ) for ( size_t i = 1; i <= pz; i++, k++ ) rc[k] = c[i][j];
   for ( size_t j = 1, k = 0; j <= nc; j++ ) for ( size_t i = 1; i <= n; i++, k++ ) rtheta[k] = theta[i][j];
   ( *rmaxiter ) = ( int ) ( lastiter );
   ( *rdcrit ) = lastdif;
@@ -139,8 +134,8 @@ void Cmulnomrowresmduneg( int* rn, int* rnc, double* rg, int* rm, int* rpx, doub
   freematrix( g );
   freematrix( x );
   freematrix( b );
-  freematrix( v );
-  freematrix( u );
+  freematrix( z );
+  freematrix( c );
   freematrix( theta );
 
 } // Cmulnomrowresrmduneg

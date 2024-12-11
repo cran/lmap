@@ -11,6 +11,11 @@ extern void Cmulvarbinresmduneg( int* rn, int* rr, double* ry, int* rm, int* rpu
 extern void Cmulvarbinrowresmduneg( int* rn, int* rr, double* ry, int* rp, double* rx, int* rm, double* rb, double* rv, int* rmains, double* rmu, int* rmaxiter, double* rdcrit, int* rmaxinner, double* rfcrit, double* rdeviance );
 extern void Cmulvarbinwgtmduneg( int* rn, int* rr, double* ry, double* rw, int* rm, double* ru, double* rv, int* rmains, double* rmu, int* rmaxiter, double* rdcrit, int* rmaxinner, double* rfcrit, double* rdeviance );
 
+extern void Cmulnomresmduneg( int* rn, int* rnc, double* rg, int* rm, int* rpx, double* rx, double* rb, int* rpz, double* rz, double* rc, double* rtheta, int* rmaxinner, double* rfcrit, int* rmaxiter, double* rdcrit, double* rdeviance );
+extern void Cmulnomcolresmduneg( int* rn, int* rnc, double* rg, int* rm, double* ru, int* rpz, double* rz, double* rc, double* rtheta, int* rmaxinner, double* rfcrit, int* rmaxiter, double* rdcrit, double* rdeviance );
+
+
+
 static const R_CMethodDef CEntries[] = {
   {"Cmulnomrowresmduneg",      ( DL_FUNC ) &Cmulnomrowresmduneg,         15},
   {"Cmulvarbincolresmduneg",      ( DL_FUNC ) &Cmulvarbincolresmduneg,         15},
@@ -18,6 +23,8 @@ static const R_CMethodDef CEntries[] = {
   {"Cmulvarbinresmduneg",      ( DL_FUNC ) &Cmulvarbinresmduneg,         17},
   {"Cmulvarbinrowresmduneg",      ( DL_FUNC ) &Cmulvarbinrowresmduneg,         15},
   {"Cmulvarbinwgtmduneg",      ( DL_FUNC ) &Cmulvarbinwgtmduneg,         14},
+  {"Cmulnomresmduneg",      ( DL_FUNC ) &Cmulnomresmduneg,         16},
+  {"Cmulnomcolresmduneg",      ( DL_FUNC ) &Cmulnomcolresmduneg,         14},
   {NULL, NULL, 0}
 };
 

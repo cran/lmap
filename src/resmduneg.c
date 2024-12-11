@@ -4,16 +4,14 @@
 // This is a permissive non-copyleft free software license that is compatible with the GNU GPL.
 //
 
-#include "flib.h"
 #include "fmdu.h"
-
 
 double resmduneg( const size_t n, const size_t m, double** delta, const size_t p, const size_t hx, double** qx, double** bx, const size_t hy, double** qy, double** by, double** d, const size_t MAXITER, const double FCRIT, size_t* lastiter, double* lastdif, const bool echo )
 // Function resmduneg() performs row restricted multidimensional unfolding.
 {
-  const double EPS = DBL_EPSILON;                                          // 2.2204460492503131e-16
-  const double TOL = sqrt( EPS );                                          // 1.4901161193847656e-08
-  const double CRIT = sqrt( TOL );                                         // 0.00012207031250000000
+  const double EPS = DBL_EPSILON;                                              // 2.2204460492503131e-16
+  const double TOL = sqrt( EPS );                                              // 1.4901161193847656e-08
+  const double CRIT = sqrt( TOL );                                             // 0.00012207031250000000
   const double TINY = pow( 10.0, ( log10( EPS ) + log10( TOL ) ) / 2.0 );  // 1.8189894035458617e-12
   const double DISCRIT = TINY;
   const double EPSCRIT = 0.25 * TINY;
@@ -45,8 +43,8 @@ double resmduneg( const size_t n, const size_t m, double** delta, const size_t p
   }
 
   // update distances and calculate normalized stress
-  gemm( false, false, n, p, hx, 1.0, qx, bx, 0.0, x );
-  gemm( false, false, m, p, hy, 1.0, qy, by, 0.0, y );
+  dgemm( false, false, n, p, hx, 1.0, qx, bx, 0.0, x );
+  dgemm( false, false, m, p, hy, 1.0, qy, by, 0.0, y );
   euclidean2( n, p, x, m, y, d );
   double fold = 0.0;
   for ( size_t i = 1; i <= n; i++ ) {
@@ -119,8 +117,8 @@ double resmduneg( const size_t n, const size_t m, double** delta, const size_t p
       }
     }
     inverse( hx, hxx );
-    gemm( true, false, hx, m, n, 1.0, qx, imw, 0.0, hhm );
-    gemm( false, false, hx, p, m, 1.0, hhm, y, 0.0, hhp );
+    dgemm( true, false, hx, m, n, 1.0, qx, imw, 0.0, hhm );
+    dgemm( false, false, hx, p, m, 1.0, hhm, y, 0.0, hhp );
     for ( size_t i = 1; i <= hx; i++ ) {
       for ( size_t j = 1; j <= p; j++ ) {
         double work = 0.0;
@@ -128,10 +126,10 @@ double resmduneg( const size_t n, const size_t m, double** delta, const size_t p
         hhp[i][j] += work;
       }
     }
-    gemm( false, false, hx, p, hx, 1.0, hxx, hhp, 0.0, bx );
+    dgemm( false, false, hx, p, hx, 1.0, hxx, hhp, 0.0, bx );
 
     // update x
-    gemm( false, false, n, p, hx, 1.0, qx, bx, 0.0, x );
+    dgemm( false, false, n, p, hx, 1.0, qx, bx, 0.0, x );
 
     // update by
     for ( size_t i = 1; i <= hy; i++ ) {
@@ -142,8 +140,8 @@ double resmduneg( const size_t n, const size_t m, double** delta, const size_t p
       }
     }
     inverse( hy, hyy );
-    gemm( true, true, hy, n, m, 1.0, qy, imw, 0.0, hhn );
-    gemm( false, false, hy, p, n, 1.0, hhn, x, 0.0, hhp );
+    dgemm( true, true, hy, n, m, 1.0, qy, imw, 0.0, hhn );
+    dgemm( false, false, hy, p, n, 1.0, hhn, x, 0.0, hhp );
     for ( size_t i = 1; i <= hy; i++ ) {
       for ( size_t j = 1; j <= p; j++ ) {
         double work = 0.0;
@@ -151,10 +149,10 @@ double resmduneg( const size_t n, const size_t m, double** delta, const size_t p
         hhp[i][j] += work;
       }
     }
-    gemm( false, false, hy, p, hy, 1.0, hyy, hhp, 0.0, by );
+    dgemm( false, false, hy, p, hy, 1.0, hyy, hhp, 0.0, by );
 
     // update y
-    gemm( false, false, m, p, hy, 1.0, qy, by, 0.0, y );
+    dgemm( false, false, m, p, hy, 1.0, qy, by, 0.0, y );
 
     // update distances and calculate normalized stress
     euclidean2( n, p, x, m, y, d );

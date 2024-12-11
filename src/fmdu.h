@@ -38,4 +38,6 @@ extern double reswgtmduneg( const size_t n, const size_t m, double** delta, doub
 
 extern double external( const size_t n, const size_t m, double** delta, double** w, const size_t p, double** const fixed, double** const z, double** d, const size_t MAXITER, const double FCRIT, size_t* lastiter, double* lastdif, const bool echo );
 
+extern void CRultrafastmdu( int* rn, int* rm, double* rdata, int* rp, double* rx, double* ry, int* rnsteps, double* rminrate, int* rseed );
+
 #endif
