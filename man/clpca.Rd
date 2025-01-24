@@ -2,12 +2,13 @@
 % Please edit documentation in R/clpca.R
 \name{clpca}
 \alias{clpca}
-\title{Cumulative Logistic (Restrcited) PCA}
+\title{Cumulative Logistic (Restricted) PCA}
 \usage{
 clpca(
   Y,
   X = NULL,
   S = 2,
+  start = NULL,
   lambda = FALSE,
   trace = FALSE,
   maxiter = 65536,
@@ -20,6 +21,8 @@ clpca(
 \item{X}{An N by P matrix with predictor variables}
 
 \item{S}{Positive number indicating the dimensionality of the solution}
+
+\item{start}{Starting values for U or B and V}
 
 \item{lambda}{if TRUE does lambda scaling (see Understanding Biplots, p24)}
 
@@ -59,7 +62,7 @@ iter number of main iterations from the MM algorithm
 deviance value of the deviance at convergence
 }
 \description{
-Cumulative Logistic (Restrcited) PCA
+Cumulative Logistic (Restricted) PCA
 }
 \examples{
 \dontrun{

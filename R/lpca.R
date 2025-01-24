@@ -7,6 +7,7 @@
 #' @param Y An N times R binary matrix  .
 #' @param X An N by P matrix with predictor variables
 #' @param S Positive number indicating the dimensionality of the solution
+#' @param start Option to provide starting values (list with m, U or B, and V)
 #' @param dim.indic An R by S matrix indicating which response variable pertains to which dimension
 #' @param eq Only applicable when dim.indic not NULL; equality restriction on regression weighhts per dimension
 #' @param lambda if TRUE does lambda scaling (see Understanding Biplots, p24)
@@ -46,7 +47,7 @@
 #' @importFrom stats plogis
 #'
 #' @export
-lpca <- function(Y, X = NULL, S = 2, dim.indic = NULL, eq = FALSE, lambda = FALSE, maxiter = 65536, dcrit = 1e-6){
+lpca <- function(Y, X = NULL, S = 2, start = NULL, dim.indic = NULL, eq = FALSE, lambda = FALSE, maxiter = 65536, dcrit = 1e-6){
 
 
   cal = match.call()
@@ -77,11 +78,18 @@ lpca <- function(Y, X = NULL, S = 2, dim.indic = NULL, eq = FALSE, lambda = FALS
     xnames = NULL
 
     # starting values
-    m = colMeans(4 * Q)
-    U = matrix(0, N, S)
-    V = matrix(0, R, S)
+    if(is.list(start)){
+      m = start$m
+      U = start$U
+      V = start$V
+    }
+    else{
+      m = colMeans(4 * Q)
+      U = matrix(0, N, S)
+      V = matrix(0, R, S)
+    }
 
-    npar = (N + R - S) * S
+    npar = R + (N + R - S) * S
 
     # compute deviance
     theta = outer(rep(1, N), m)
@@ -145,16 +153,23 @@ lpca <- function(Y, X = NULL, S = 2, dim.indic = NULL, eq = FALSE, lambda = FALS
     iXXX = solve(t(X) %*% X) %*% t(X)
     iRx = solve(Rx)
     iRxX = iRx %*% t(X)
-	npar = (P + R - S) * S
+	  npar = R + (P + R - S) * S
 
-
-    # starting values
-    m = colMeans(4 * Q)
-    B = matrix(0, P, S)
-    V = matrix(0, R, S)
-
+	 # starting values
+    if(is.list(start)){
+      m = start$m
+      B = start$B
+      V = start$V
+      theta = outer(rep(1, N), m) + X %*% B %*% t(V)
+    }
+    else{
+      m = colMeans(4 * Q)
+      B = matrix(0, P, S)
+      V = matrix(0, R, S)
+      theta = outer(rep(1, N), m)
+    }
+    
     # compute deviance
-    theta = outer(rep(1, N), m)
     dev.old <- -2 * sum(log(plogis(Q * theta)))
 
     for (iter in 1:maxiter) {

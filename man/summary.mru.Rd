@@ -2,7 +2,7 @@
 % Please edit documentation in R/summary.mru.R
 \name{summary.mru}
 \alias{summary.mru}
-\title{Summarizing Multinomial Logistic Unfolding model
+\title{Summarizing Multinomial Restricted Unfolding Model
 											   
 The function summary.mru gives a summary from an object from mru()}
 \usage{
@@ -17,7 +17,7 @@ The function summary.mru gives a summary from an object from mru()}
 Summary of the results obtained from mru
 }
 \description{
-Summarizing Multinomial Logistic Unfolding model
+Summarizing Multinomial Restricted Unfolding Model
 											   
 The function summary.mru gives a summary from an object from mru()
 }

@@ -9,8 +9,10 @@
   dims = c(1, 2),
   circles = seq(1, R),
   ycol = "darkgreen",
-  xcol = "lightskyblue",
+  xcol = "darkblue",
   ocol = "grey",
+  markersize = 2.5,
+  labelsize = 3,
   ...
 )
 }
@@ -26,6 +28,10 @@
 \item{xcol}{colour for representation of predictor variables}
 
 \item{ocol}{colour for representation of row objects}
+
+\item{markersize}{size of points}
+
+\item{labelsize}{size of labels}
 
 \item{\dots}{additional arguments to be passed.}
 }

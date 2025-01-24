@@ -9,6 +9,7 @@ fastmru(
   X = NULL,
   B = NULL,
   Z = NULL,
+  C = NULL,
   MAXINNER = 32,
   FCRIT = 0.001,
   MAXITER = 65536,
@@ -24,6 +25,8 @@ fastmru(
 \item{B}{starting values of the regression weights}
 
 \item{Z}{starting values for class locations}
+
+\item{C}{matrix with coefficients for class points, V = ZC}
 
 \item{MAXINNER}{maximum number of iterations in the inner loop}
 

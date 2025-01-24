@@ -3,9 +3,10 @@
 #' The function mru performs multinomial restricted unfolding for a nominal response
 #' variable and a set of predictor variables.
 #'
-#' @param y An N vector of the responses (categorical).
+#' @param y An N vector of the responses (categorical) or an indicator matrix of size N x C (obligatory when Z is used)
 #' @param X An N by P matrix with predictor variables
-#' @param S Positive number indicating the dimensionality of teh solution
+#' @param Z Design matrix for the class points (V)
+#' @param S Positive number indicating the dimensionality of the solution
 #' @param start Type of starting values (da: discriminant analysis, random or list with B and V)
 #' @param maxiter maximum number of iterations
 #' @param dcrit convergence criterion
@@ -19,15 +20,15 @@
 #' @return sdx standard deviations of the predictor variables
 #' @return U coordinate matrix of row objects
 #' @return B matrix with regression coefficients
-#' @return Class coordinate matrix
+#' @return V Class coordinate matrix
 #' @return iters number of iterations
 #' @return deviance value of the deviance at convergence
 #'
 #' @examples
 #' \dontrun{
 #' data(dataExample_mru)
-#' y = as.matrix(dataExample_mru[1:20 , 1])
-#' X = as.matrix(dataExample_mru[1:20 , 2:6])
+#' y = as.matrix(dataExample_mru[ , 1])
+#' X = as.matrix(dataExample_mru[ , 2:6])
 #' output = mru(y = y, X = X, S = 2)
 #' }
 #'
@@ -35,26 +36,38 @@
 #' @importFrom stats runif
 #'
 #' @export
-mru = function(y, X, S = 2, start = "da", maxiter = 65536, dcrit = 1e-5)
+
+mru = function(y, X, Z = NULL, S = 2, start = "da", maxiter = 65536, dcrit = 1e-6)
 {
 
+  if(!is.matrix(y)){G = class.ind(y)}
+  else if(ncol(y) == 1){G = class.ind(y)}
+  else{
+    G = y
+    y = apply(G, 1, which.max)
+  }
 
   N = nrow(X)
   P = ncol(X)
-  G = class.ind(y)
   C = ncol(G)
 
   Xoriginal = X
-  X = as.matrix(scale(X, center = TRUE, scale = TRUE))
-  mx = attr(X, "scaled:center")
-  sdx = attr(X, "scaled:scale")
+  outx = procx(X)
+  X = outx$X
+  mx = outx$mx
+  sdx = outx$sdx
 
   # initialization
-  if( start == "random" ) {
-    B <- matrix( runif( P * S ), P, S )
+  if (is.list(start)){
+    Bx = start$B
+    if(is.null(Z)){V = start$V}
+    else{Bz = start$Bz}
+  }
+  else if( start == "random" ) {
+    Bx <- matrix( runif( P * S ), P, S )
     V <- matrix( runif( C * S ), C, S )
   }
-  if ( start == "da" ) {
+  else if ( start == "da" ) {
     tGGinv <- solve( t( G ) %*% G )
     U <- t( X ) %*% G %*% tGGinv
     e <- eigen( ( 1 / N ) * t( X ) %*% X )
@@ -62,16 +75,25 @@ mru = function(y, X, S = 2, start = "da", maxiter = 65536, dcrit = 1e-5)
     A <- t( U ) %*% Tmp
     s = svd( A, nu = S, nv = S )
     sV <- matrix( s$v, P, S )
-    B <- Tmp %*% sV
-    V <- tGGinv %*% t( G ) %*% X %*% B
-  }
-  else if (is.list(start)){
-    B = start$B
-    V = start$V
+    Bx <- Tmp %*% sV
+    V <- tGGinv %*% t( G ) %*% X %*% Bx
   }
 
   # call C-code
-  res = fastmru(G = G, X = X, B = B, Z = V, DCRIT = dcrit)
+  if(is.null(Z)){
+    res = fastmru(G = G, X = X, B = Bx, Z = V, DCRIT = dcrit)
+    Bz = NULL
+    V = res$V
+	npar = S * (P + C - (S-1)/2)
+  }
+  else{
+    Z = cbind(1, Z)
+    Bz = solve( t(Z) %*% Z ) %*% t(Z) %*% V
+    res = fastmru(G = G, X = X, B = Bx, Z = Z, C = Bz, DCRIT = dcrit)
+    Bz = res$C
+    V = Z %*% Bz
+	npar = S * (P + ncol(Z) - (S-1)/2)
+  }
 
   # make output object
   output = list(
@@ -84,11 +106,15 @@ mru = function(y, X, S = 2, start = "da", maxiter = 65536, dcrit = 1e-5)
     mx = mx,
     sdx = sdx,
     U = X %*% res$B,
-    B = res$B,
-    V = res$V,
+    Bx = res$B,
+    Bz = Bz,
+    V = V,
     iter = res$iters,
-    deviance = res$deviance
-  )
+    deviance = res$deviance,
+    npar = npar,
+    AIC = res$deviance + 2 * npar,
+    BIC = res$deviance + log(N) * npar
+)
   class(output) = "mru"
   return(output)
 }

@@ -18,6 +18,7 @@
 }
 \value{
 This function returns an object of the class \code{lpca} with components:
+\item{theta}{Predicted canonical values for the test set}
 \item{Yhat}{Predicted values for the test set}
 \item{devr}{Estimated prediction deviance for separate responses}
 \item{devtot}{Estimated prediction deviance for all responses}

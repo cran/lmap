@@ -89,7 +89,7 @@ lmdu <- function(Y, f = NULL, X = NULL, S = 2, start = "svd", maxiter = 65536, d
       if(sum(Y[1, ]) == 0){ Y = Y[-1, ]; f = f[-1]}
     }
 
-    npar = (nrow(Y) + ncol(Y)) * S - S*(S + 1)/2
+    npar = ncol(Y) + (nrow(Y) + ncol(Y)) * S - S*(S + 1)/2
 
     # Data Coding
     Q = 2 * as.matrix(Y) - 1
@@ -139,7 +139,7 @@ lmdu <- function(Y, f = NULL, X = NULL, S = 2, start = "svd", maxiter = 65536, d
     xnames = colnames(X)
     Yoriginal = Y
 
-    npar = (ncol(X) + ncol(Y)) * S - S*(S - 1)/2
+    npar = ncol(Y) + (ncol(X) + ncol(Y)) * S - S*(S - 1)/2
 
 
     # Data Coding

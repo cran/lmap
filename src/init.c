@@ -4,7 +4,7 @@
 #include <R_ext/Rdynload.h>
 
 
-extern void Cmulnomrowresmduneg( int* rn, int* rc, double* rg, int* rp, double* rx, int* rm, double* rb, double* rv, double* ru, double* rtheta, int* rmaxiter, double* rdcrit, int* rmaxinner, double* rfcrit, double* rdeviance );
+extern void Cmulnomrowresmduneg( int* rn, int* rnc, double* rg, int* rm, int* rpx, double* rx, double* rb, double* rv, double* rtheta, int* rmaxinner, double* rfcrit, int* rmaxiter, double* rdcrit, double* rdeviance );
 extern void Cmulvarbincolresmduneg( int* rn, int* rr, double* ry, int* rm, double* ru, int* rp, double* rx, double* rb, int* rmains, double* rmu, int* rmaxiter, double* rdcrit, int* rmaxinner, double* rfcrit, double* rdeviance );
 extern void Cmulvarbinmduneg( int* rn, int* rr, double* ry, int* rm, double* ru, double* rv, int* rmains, double* rmu, int* rmaxiter, double* rdcrit, int* rmaxinner, double* rfcrit, double* rdeviance );
 extern void Cmulvarbinresmduneg( int* rn, int* rr, double* ry, int* rm, int* rpu, double* rxu, double* rbu, int* rpv, double* rxv, double* rbv, int* rmains, double* rmu, int* rmaxiter, double* rdcrit, int* rmaxinner, double* rfcrit, double* rdeviance );
@@ -17,7 +17,7 @@ extern void Cmulnomcolresmduneg( int* rn, int* rnc, double* rg, int* rm, double*
 
 
 static const R_CMethodDef CEntries[] = {
-  {"Cmulnomrowresmduneg",      ( DL_FUNC ) &Cmulnomrowresmduneg,         15},
+  {"Cmulnomrowresmduneg",      ( DL_FUNC ) &Cmulnomrowresmduneg,         14},
   {"Cmulvarbincolresmduneg",      ( DL_FUNC ) &Cmulvarbincolresmduneg,         15},
   {"Cmulvarbinmduneg",      ( DL_FUNC ) &Cmulvarbinmduneg,         13},
   {"Cmulvarbinresmduneg",      ( DL_FUNC ) &Cmulvarbinresmduneg,         17},

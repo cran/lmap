@@ -1,0 +1,24 @@
+#' Diabetes data
+#'
+#' Data description
+#'
+#' @name  diabetes
+#' @docType data
+#'
+#' @usage data(diabetes)
+#'
+#' @keywords dataset
+#'
+#' @format A list of 3 matrices
+#' \itemize{
+#'   \item X: A 145 x 3 matrix containing observed values on three predictor variables.
+#'   RW = Relative weight; IR = Insulin Response; SSPG = Steady state plasma glucose.
+#'   \item G: A 145 x 3 indicator matrix containing the responses on three response classes Overt, Chemical, and Non
+#'   \item y: A vector of length 145 containing the responses (Overt, Chemical, Non)
+#' }
+#'
+#' @references G. M. Reaven and R. G. Miller (1979) An Attempt to Define the Nature of Chemical Diabetes Using a Multidimensional Analysis.
+#' Diabetologia 16, 17-24
+#' D. F. Andrews A. M. Herzberg (1985). Data: A Collection of Problems from Many Fields for the Student and Research Worker.
+#' New York: Springer-Verlag Inc.
+"diabetes"

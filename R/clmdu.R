@@ -46,8 +46,6 @@ clmdu = function(Y, X = NULL, S = 2, trace = FALSE, start = "svd", maxiter = 655
 
   cal = match.call()
 
-  cat("Note this is a slow procedure, if you like to see progress, set trace = TRUE", "\n")
-
   #
   Yoriginal = Y
   ynames = colnames(Y)
@@ -138,7 +136,7 @@ clmdu = function(Y, X = NULL, S = 2, trace = FALSE, start = "svd", maxiter = 655
       dev.new <- sum(dev)
 
       # some iterative output or warnings
-      if (trace) {cat(iter, mdu.out$lastdif, dev.new, dev.old, 2*(dev.old - dev.new)/(dev.old + dev.new), "\n")}
+      if (trace) {cat(iter, dev.old, dev.new, (2*(dev.old - dev.new)/(dev.old + dev.new)), "\n")}
       if (2*(dev.old - dev.new)/(dev.old + dev.new) < dcrit){
         # rotation to principal components
         A = t(f*U)%*%U #added frequency weights
@@ -222,6 +220,8 @@ clmdu = function(Y, X = NULL, S = 2, trace = FALSE, start = "svd", maxiter = 655
       Z = as.matrix(theta - 4 * xi)
 
       # update B/U and V
+      # mdu.out = fastmdu(-Z, w = NULL, p = S, x = X, rx = B, y = V, ry = NULL, MAXITER = 10, 
+      #                   error.check = TRUE, echo = TRUE)
       mdu.out = fastmdu(-Z, w = NULL, p = S, x = X, rx = B, y = V, ry = NULL, MAXITER = 10)
       B = mdu.out$row.coefficients
       U = mdu.out$row.coordinates # X %*% B
@@ -240,7 +240,7 @@ clmdu = function(Y, X = NULL, S = 2, trace = FALSE, start = "svd", maxiter = 655
       dev.new <- sum(dev)
 
       # some iterative output or warnings
-      if (trace) {cat(iter, mdu.out$lastdif, dev.new, dev.old, 2*(dev.old - dev.new)/(dev.old + dev.new), "\n")}
+      if (trace) {cat(iter, dev.old, dev.new, (2*(dev.old - dev.new)/(dev.old + dev.new)), "\n")}
       if (2*(dev.old - dev.new)/(dev.old + dev.new) < dcrit) {
         # rotation to principal components
         A = t(U)%*%U

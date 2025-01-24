@@ -8,6 +8,7 @@ lpca(
   Y,
   X = NULL,
   S = 2,
+  start = NULL,
   dim.indic = NULL,
   eq = FALSE,
   lambda = FALSE,
@@ -21,6 +22,8 @@ lpca(
 \item{X}{An N by P matrix with predictor variables}
 
 \item{S}{Positive number indicating the dimensionality of the solution}
+
+\item{start}{Option to provide starting values (list with m, U or B, and V)}
 
 \item{dim.indic}{An R by S matrix indicating which response variable pertains to which dimension}
 

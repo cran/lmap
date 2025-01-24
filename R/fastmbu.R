@@ -44,7 +44,6 @@ fastmbu <- function( Y = NULL, W = NULL, XU = NULL, BU = NULL, XV = NULL, BV = N
   }
   else m <- ncol( XV )
   mu <- rep( 0, r )
-  iters <- 0
   deviance <- 0.0
 
   # execution

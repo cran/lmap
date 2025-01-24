@@ -93,7 +93,7 @@ double mulnomresmduneg( const size_t n, const size_t nc, double** g, const size_
 } // mulnomresmduneg
 
 void Cmulnomresmduneg( int* rn, int* rnc, double* rg, int* rm, int* rpx, double* rx, double* rb, int* rpz, double* rz, double* rc, double* rtheta, int* rmaxinner, double* rfcrit, int* rmaxiter, double* rdcrit, double* rdeviance )
-// Cmulnomresmduneg() performs multinomial row restricted unfolding allowing negative dissimilarities.
+// Cmulnomresmduneg() performs multinomial restricted unfolding allowing negative dissimilarities.
 {
   // transfer to C
   const size_t n = *rn;
@@ -138,4 +138,4 @@ void Cmulnomresmduneg( int* rn, int* rnc, double* rg, int* rm, int* rpx, double*
   freematrix( c );
   freematrix( theta );
 
-} // Cmulnomrowresrmduneg
+} // Cmulnomresrmduneg

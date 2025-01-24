@@ -8,7 +8,7 @@
 \method{predict}{mru}(object, newX, newG = NULL, ...)
 }
 \arguments{
-\item{object}{An \code{lmdu} object}
+\item{object}{An \code{mru} object}
 
 \item{newX}{An N by P matrix with predictor variables for a test/validation set}
 

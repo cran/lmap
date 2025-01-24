@@ -8,8 +8,9 @@
   x,
   dims = c(1, 2),
   type = "H",
+  pmarkers = seq(0.1, 0.9, by = 0.1),
   ycol = "darkgreen",
-  xcol = "lightskyblue",
+  xcol = "darkblue",
   ocol = "grey",
   ...
 )
@@ -20,6 +21,8 @@
 \item{dims}{which dimensions to visualize}
 
 \item{type}{either H (hybrid), I (inner product/pca), or D (distance/melodic)}
+
+\item{pmarkers}{vector or list of length R (the number of response variables) with values between 0 and 1 for markers on the response variable axes.}
 
 \item{ycol}{colour for representation of response variables}
 

@@ -5,6 +5,7 @@
 #' @param X matrix with predictor variables
 #' @param B starting values of the regression weights
 #' @param Z starting values for class locations
+#' @param C matrix with coefficients for class points, V = ZC
 #' @param MAXINNER maximum number of iterations in the inner loop
 #' @param FCRIT convergence criterion for STRESS in the inner loop
 #' @param MAXITER maximum number of iterations in the outer loop
@@ -24,7 +25,7 @@
 #' @export
 #' @useDynLib lmap, .registration=TRUE
 
-fastmru <- function( G = NULL, X = NULL, B = NULL, Z = NULL, MAXINNER = 32, FCRIT = 0.001, MAXITER = 65536, DCRIT = 0.000001, error.check = FALSE ){
+fastmru <- function( G = NULL, X = NULL, B = NULL, Z = NULL, C = NULL, MAXINNER = 32, FCRIT = 0.001, MAXITER = 65536, DCRIT = 0.000001, error.check = FALSE ){
   # check for input errors
   if ( error.check == TRUE ) {
 
@@ -32,7 +33,7 @@ fastmru <- function( G = NULL, X = NULL, B = NULL, Z = NULL, MAXINNER = 32, FCRI
     if ( is.null( G ) ) stop( "missing membership data G")
     if ( is.null( X ) ) stop( "missing row data")
     if ( is.null( Z ) ) stop( "missing column data")
-  
+
 
     # G
     if ( !is.matrix( G ) ) stop( "G is not a matrix" )
@@ -56,7 +57,7 @@ fastmru <- function( G = NULL, X = NULL, B = NULL, Z = NULL, MAXINNER = 32, FCRI
       px <- ncol( X )
       m <- ncol( B )
     }
-  
+
     # Z
     if ( !is.matrix( Z ) ) stop( "Z is not a matrix" )
     if ( !is.numeric( Z ) ) stop( "Z is not numeric" )
@@ -119,18 +120,18 @@ fastmru <- function( G = NULL, X = NULL, B = NULL, Z = NULL, MAXINNER = 32, FCRI
     B <- matrix( res$B, px, m )
     U <- X %*% B
   }
-  if ( is.null( C ) ) V <- matrix( res$Z, c, m )
+  if ( is.null( C ) ) V <- matrix( res$V, c, m )
   else {
     C <- matrix( res$C, pz, m )
     V <- Z %*% C
   }
 
   return( list( B=B,
-                U=U, 
+                U=U,
                 C=C,
-                V=V, 
-                lastiter=res$MAXITER, 
-                lastddif=res$DCRIT, 
+                V=V,
+                lastiter=res$MAXITER,
+                lastddif=res$DCRIT,
                 deviance=res$deviance ) )
 
 } # fastmru

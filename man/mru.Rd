@@ -4,14 +4,16 @@
 \alias{mru}
 \title{Multinomial Restricted MDU}
 \usage{
-mru(y, X, S = 2, start = "da", maxiter = 65536, dcrit = 1e-05)
+mru(y, X, Z = NULL, S = 2, start = "da", maxiter = 65536, dcrit = 1e-06)
 }
 \arguments{
-\item{y}{An N vector of the responses (categorical).}
+\item{y}{An N vector of the responses (categorical) or an indicator matrix of size N x C (obligatory when Z is used)}
 
 \item{X}{An N by P matrix with predictor variables}
 
-\item{S}{Positive number indicating the dimensionality of teh solution}
+\item{Z}{Design matrix for the class points (V)}
+
+\item{S}{Positive number indicating the dimensionality of the solution}
 
 \item{start}{Type of starting values (da: discriminant analysis, random or list with B and V)}
 
@@ -40,7 +42,7 @@ U coordinate matrix of row objects
 
 B matrix with regression coefficients
 
-Class coordinate matrix
+V Class coordinate matrix
 
 iters number of iterations
 
@@ -53,8 +55,8 @@ variable and a set of predictor variables.
 \examples{
 \dontrun{
 data(dataExample_mru)
-y = as.matrix(dataExample_mru[1:20 , 1])
-X = as.matrix(dataExample_mru[1:20 , 2:6])
+y = as.matrix(dataExample_mru[ , 1])
+X = as.matrix(dataExample_mru[ , 2:6])
 output = mru(y = y, X = X, S = 2)
 }
 

@@ -1,7 +1,7 @@
 #'  The function predict.mru makes predictions for a test/validation set
 #'  based on a fitted mru model
 #'
-#' @param object An \code{lmdu} object
+#' @param object An \code{mru} object
 #' @param newX An N by P matrix with predictor variables for a test/validation set
 #' @param newG An N by R matrix with response variables  for a test/validation set
 #' @param \dots additional arguments to be passed.
@@ -29,7 +29,7 @@ predict.mru = function(object, newX, newG = NULL,...){
 
 
   X = scale(newX, center = object$mx, scale = object$sdx)
-  U = X %*% object$B
+  U = X %*% object$Bx
   V = object$V
   D = sqrt(outer(diag(U %*% t(U)), rep(1, nrow(V))) + outer(rep(1, nrow(U)), diag(V %*% t(V))) - 2 * U %*% t(V))
   theta = - D

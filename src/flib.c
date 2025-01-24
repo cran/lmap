@@ -1,19 +1,14 @@
 //
 // Copyright (c) 2020 Frank M.T.A. Busing (e-mail: busing at fsw dot leidenuniv dot nl)
 // FreeBSD or 2-Clause BSD or BSD-2 License applies, see Http://www.freebsd.org/copyright/freebsd-license.html
-// This is a permissive non-copyleft free software license that is compatible with the GNU GPL.
+// This is a permissive non-copyleft free software license that is compatible with the GNU GPL. 
 //
 
 #include "flib.h"
-#define R
-
 #include <math.h>
 
 #ifdef _WIN32
-#endif			 
-
-
-
+#endif
 
 // -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 // scalar functions
@@ -96,13 +91,13 @@ bool isnotsysmis( const double a )
 {
   return isnotequal( a, SYSMIS );
 } // isnotsysmis
-
 double sign( const double r, const double s )
 // returns r with sign of s
 {
   if ( s == 0.0 ) return r;
-  else return ( s < 0.0 ) ? -r : r;
+  else return ( s < 0.0 ) ? -fabs( r ) : fabs( r );  // added fabs() 20250107
 } // sign
+
 
 double pythag( double x, double y )
 // return sqrt( x * x + y * y ) without problems
@@ -136,12 +131,11 @@ double roundat( const double a, const int d )
   double r = round( f );
   return r / m;
 } // round
-
 // -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 // random functions
 //
 
-static size_t timeseed( void )
+static size_t timeseed(void)
 {
   time_t t = time( NULL );
   clock_t c = clock( );
@@ -163,7 +157,7 @@ static size_t timeseed( void )
 
 static size_t xseed;
 
-static size_t nextxseed( void )
+static size_t nextxseed(void)
 {
   size_t z = ( xseed += 0x9e3779b97f4a7c15 );
   z = ( z ^ ( z >> 30 ) ) * 0xbf58476d1ce4e5b9;
@@ -208,7 +202,6 @@ size_t duniform( const size_t n1, const size_t n2 )
 {
   return n1 + ( size_t )( floorl( nextdouble( ) * ( double )( n2 - n1 + 1 ) ) );
 } // duniform
-
 double stdnormal( void )
 // return a real number from a standard normal (Gaussian) distribution
 // by polar form of Box-Muller transformation (Marsaglia)
@@ -241,7 +234,6 @@ double stdlognormal( void )
 {
   return exp( stdnormal( ) );
 } // stdlognormal
-
 void permutate_t( const size_t n, size_t* a )
 // Uses the Fisher-Yates or Knuth shuffle
 {
@@ -326,14 +318,13 @@ size_t expecteddraws( const size_t n, const size_t m )
   freevector_t( pop );
   return( mnn / nrepls );
 }
-
 size_t binarysearch( const size_t n, double* x, const double p )
 {
   size_t a = 1;
   size_t b = n;
-  size_t c = 0;
+
   while ( ( b - a ) > 1 ) {
-    c = ( a + b ) / 2;
+    const size_t c = ( a + b ) / 2;
     if ( p <= x[c] ) b = c;
     else a = c;
   }
@@ -675,7 +666,6 @@ static double damax( const size_t n, const double* const a, const size_t inca )
   }
   return d;
 } // damax
-
 static void dswap( const size_t n, double* const a, const size_t inca, double* const b, const size_t incb )
 // interchanges two vectors
 {
@@ -910,7 +900,7 @@ double ddot( const size_t n, const double* const a, const size_t inca, const dou
   return s;
 } // dot
 
-double wddot( const size_t n, const double* const a, const size_t inca, const double* const b, const size_t incb, const double* const w, const size_t incw )
+double dwdot( const size_t n, const double* const a, const size_t inca, const double* const b, const size_t incb, const double* const w, const size_t incw )
 // returns the weighted dot product of two vectors
 // with the same vector for a and b, the weighted sum-of-squares is returned
 {
@@ -952,7 +942,7 @@ double wddot( const size_t n, const double* const a, const size_t inca, const do
     case 1: s += w[j] * a[j] * b[j]; j++;
   }
   return s;
-} // wdot
+} // dwdot
 
 double dssq( const size_t n, const double* const a, const size_t inca )
 // returns the weighted sum-of-squares of vector a
@@ -1080,8 +1070,8 @@ void daxpy( const size_t n, const double c, double* a, const size_t inca, double
   }
 } // axpy
 
-double rmse( const size_t n, const double* const a, const size_t inca, const double* const b, const size_t incb )
-// rmse returns the euclidean norm of the difference between vectors a and b, i.e., rmse = sqrt ( [a-b]'[a-b] )
+double dsse( const size_t n, const double* const a, const size_t inca, const double* const b, const size_t incb )
+// dsse returns the euclidean norm of the difference between vectors a and b, i.e., dsse = [a-b]'[a-b]
 {
   if ( n == 0 ) return 0.0;
   double d;
@@ -1120,11 +1110,17 @@ double rmse( const size_t n, const double* const a, const size_t inca, const dou
     case 2: d = a[j] - b[j]; s += d * d; j++;
     case 1: d = a[j] - b[j]; s += d * d; j++;
   }
-  return sqrt( s );
-} // rmse
+  return s;
+} // dsse
 
-double wrmse( const size_t n, const double* const a, const size_t inca, const double* const b, const size_t incb, const double* const w, const size_t incw )
-// dnrm2 returns the weighted euclidean norm of a difference vector, i.e., dnrm2 = sqrt ( a-b'*diag(w)*a-b )
+double drsse( const size_t n, const double* const a, const size_t inca, const double* const b, const size_t incb )
+// rmse returns the euclidean norm of the difference between vectors a and b, i.e., rmse = sqrt ( [a-b]'[a-b] )
+{
+  return( sqrt( dsse( n, a, inca, b, incb ) ) );
+} // drsse
+
+double dwsse( const size_t n, const double* const a, const size_t inca, const double* const b, const size_t incb, const double* const w, const size_t incw )
+// dwsse returns the weighted euclidean norm of a difference vector, i.e., dwsse = [a-b]'diag(w)[a-b]
 {  // profile
   if ( n == 0 ) return 0.0;
   double d;
@@ -1169,6 +1165,12 @@ double wrmse( const size_t n, const double* const a, const size_t inca, const do
   }
   return sqrt( s );
 } // wrmse
+
+double drwsse( const size_t n, const double* const a, const size_t inca, const double* const b, const size_t incb, const double* const w, const size_t incw )
+// dnrm2 returns the weighted euclidean norm of a difference vector, i.e., dnrm2 = sqrt ( a-b'*diag(w)*a-b )
+{  // profile
+  return( sqrt( dwsse( n, a, inca, b, incb, w, incw ) ) );
+} // drwsse
 
 void dset( const size_t n, const double b, double* const a, const size_t inca )
 // set elements of vector a equal to scalar b
@@ -1283,7 +1285,7 @@ void dgemv( const bool transa, const size_t nra, const size_t nca, const double 
 } // gemv
 
 void dgemm( const bool transa, const bool transb, const size_t nrc, const size_t ncc, const size_t nab, const double alpha, double** const a, double** const b, const double beta, double** const c )
-// C = alpha * a(ta) * B(tb) + beta * C
+// C = alpha * A(ta) * B(tb) + beta * C
 {
   // input cannot be same as output
   assert( a != c );
@@ -1303,7 +1305,7 @@ void dgemm( const bool transa, const bool transb, const size_t nrc, const size_t
   if ( transb == false ) {
     if ( transa == false ) {
 
-      // form: C = alpha*a*B + beta*C
+      // form: C = alpha*A*B + beta*C
       for ( size_t j = 1; j <= ncc; j++ ) {
         for ( size_t k = 1; k <= nab; k++ ) {
           if ( isnotzero( b[k][j] ) ) {
@@ -1315,7 +1317,7 @@ void dgemm( const bool transa, const bool transb, const size_t nrc, const size_t
     }
     else {
 
-      // form: C = alpha*a'*B + beta*C for beta == 0.0
+      // form: C = alpha*A'*B + beta*C for beta == 0.0
       if ( iszero( beta ) ) {
         for ( size_t j = 1; j <= ncc; j++ ) {
           for ( size_t i = 1; i <= nrc; i++ ) {
@@ -1326,7 +1328,7 @@ void dgemm( const bool transa, const bool transb, const size_t nrc, const size_t
         }
       }
 
-      // form: C = alpha*a'*B + beta*C for beta != 0.0
+      // form: C = alpha*A'*B + beta*C for beta != 0.0
       else {
         for ( size_t j = 1; j <= ncc; j++ ) {
           for ( size_t i = 1; i <= nrc; i++ ) {
@@ -1341,7 +1343,7 @@ void dgemm( const bool transa, const bool transb, const size_t nrc, const size_t
   else {
     if ( transa == false ) {
 
-      // form: C = alpha*a*B' + beta*C
+      // form: C = alpha*A*B' + beta*C
       for ( size_t j = 1; j <= ncc; j++ ) {
         for ( size_t k = 1; k <= nab; k++ ) {
           if ( isnotzero( b[j][k] ) ) {
@@ -1353,7 +1355,7 @@ void dgemm( const bool transa, const bool transb, const size_t nrc, const size_t
     }
     else {
 
-      // form: C = alpha*a'*B' + beta*C for beta == 0.0
+      // form: C = alpha*A'*B' + beta*C for beta == 0.0
       if ( iszero( beta ) ) {
         for ( size_t j = 1; j <= ncc; j++ ) {
           for ( size_t i = 1; i <= nrc; i++ ) {
@@ -1364,7 +1366,7 @@ void dgemm( const bool transa, const bool transb, const size_t nrc, const size_t
         }
       }
 
-      // form: C = alpha*a'*B' + beta*C for beta != 0.0
+      // form: C = alpha*A'*B' + beta*C for beta != 0.0
       else {
         for ( size_t j = 1; j <= ncc; j++ ) {
           for ( size_t i = 1; i <= nrc; i++ ) {
@@ -1401,6 +1403,18 @@ double stddev( const size_t n, const double* const a, const size_t inca )
 {
   return sqrt( variance( n, a, inca ) );
 } // stddev
+
+void doublecenter( const size_t n, double** a )
+// double center square matrix
+{
+  double** J = getmatrix( n, n, -1.0 / ( double )( n ) );
+  for ( size_t i = 1; i <= n; i++ ) J[i][i] += 1.0;
+  double** H = getmatrix( n, n, 0.0 );
+  dgemm( false, false, n, n, n, 1.0, J, a, 0.0, H );
+  dgemm( false, false, n, n, n, 1.0, H, J, 0.0, a );
+  freematrix( J );
+  freematrix( H );
+} // doublecenter
 
 double fdist1( const size_t p, double* x, double* y )
 {
@@ -1466,7 +1480,6 @@ double fdist( const size_t n, double* x, double* y, const size_t inc )
   }
   return sqrt( sm );
 } // fdist
-
 void euclidean1( const size_t n, const size_t p, double** z, double** r )
 // compute euclidean distances r between rows of a and b
 {
@@ -1571,6 +1584,28 @@ void squaredeuclidean2( const size_t n, const size_t p, double** a, const size_t
   }
 } // squaredeuclidean2
 
+void pdist( const size_t n, double* d, double* w, double* r )
+// create probabilities from distances with weights
+{
+  const double TOL = sqrt( DBL_EPSILON );
+  const double wsm = dwsum( n, &d[1], 1, &w[1], 1 ) + ( double )( n ) * TOL;
+  for ( size_t i = 1; i <= n; i++ ) r[i] = wsm / ( w[i] * d[i] + TOL );
+  double alpha = dsum( n, &r[1], 1 );
+  if ( iszero( alpha ) ) alpha = TOL;
+  dscal( n, 1.0 / alpha, &r[1], 1 );
+} // pdist
+
+static void dinsertion0( const size_t n, double* const a )
+// fast insertion sort for small arrays
+{
+  for ( size_t i = n - 1; i > 0; --i ) {
+    size_t j = i;
+    const double val = a[i];
+    for ( ; j < n && a[j + 1] < val; ++j ) a[j] = a[j + 1];
+    a[j] = val;
+  }
+} // dinsertion
+
 static void dinsertion( const size_t n, double* const a, size_t* const r )
 // fast insertion sort for small arrays
 {
@@ -1586,6 +1621,95 @@ static void dinsertion( const size_t n, double* const a, size_t* const r )
     r[j] = ind;
   }
 } // dinsertion
+
+void dsort0( const size_t n, double* const a )
+// replaces double vector with elements in increasing order
+{
+  // fast return
+  if ( n <= 1 ) return;
+
+  // fast sort for small vectors
+  if ( n <= 16 ) {
+    dinsertion0( n, a );
+    return;
+  }
+
+  const size_t select = 20;
+  size_t i, j;
+  double dmnmx;
+
+  long stkpnt = 0;
+  size_t stack[2][32] = { 0 };
+  stack[0][0] = 1;
+  stack[1][0] = n;
+  while ( stkpnt >= 0 ) {
+    size_t start = stack[0][stkpnt];
+    size_t endd = stack[1][stkpnt];
+    stkpnt--;
+    if ( endd - start <= select && endd - start > 0 ) {
+      for ( i = start + 1; i <= endd; i++ ) {
+        for ( j = i; j >= start + 1; j-- ) {
+          if ( a[j] < a[j - 1] ) {
+            dmnmx = a[j];
+            a[j] = a[j - 1];
+            a[j - 1] = dmnmx;
+          }
+          else break;
+        }
+      }
+    }
+    else if ( endd - start > select ) {
+      const double d1 = a[start];
+      const double d2 = a[endd];
+      i = ( start + endd ) / 2;
+      const double d3 = a[i];
+      if ( d1 < d2 ) {
+        if ( d3 < d1 ) dmnmx = d1;
+        else if ( d3 < d2 ) dmnmx = d3;
+        else dmnmx = d2;
+      }
+      else {
+        if ( d3 < d2 ) dmnmx = d2;
+        else if ( d3 < d1 ) dmnmx = d3;
+        else dmnmx = d1;
+      }
+      i = start - 1;
+      j = endd + 1;
+      do {
+        do {
+          j--;
+        }
+        while ( a[j] > dmnmx );
+        do {
+          i++;
+        }
+        while ( a[i] < dmnmx );
+        if ( i < j ) {
+          double dtmp = a[i];
+          a[i] = a[j];
+          a[j] = dtmp;
+        }
+      }
+      while ( i < j );
+      if ( j - start > endd - j - 1 ) {
+        stkpnt++;
+        stack[0][stkpnt] = start;
+        stack[1][stkpnt] = j;
+        stkpnt++;
+        stack[0][stkpnt] = j + 1;
+        stack[1][stkpnt] = endd;
+      }
+      else {
+        stkpnt++;
+        stack[0][stkpnt] = j + 1;
+        stack[1][stkpnt] = endd;
+        stkpnt++;
+        stack[0][stkpnt] = start;
+        stack[1][stkpnt] = j;
+      }
+    }
+  }
+} // dsort
 
 void dsort( const size_t n, double* const a, size_t* const r )
 // replaces double vector with elements in increasing order
@@ -1783,7 +1907,6 @@ void sort_t( const size_t n, size_t* const a )
     }
   }
 } // sort_t
-
 bool symmetric( const size_t n, double** x )
 {
   if ( n == 1 ) return true;
@@ -2056,7 +2179,7 @@ double nstress( const size_t n, double** delta, double** d, double** w )
   if ( iszero( scale ) ) return( 1.0 );
   return( fnew / scale );
 } // nstress
-
+																																																													  
 double pearson( const size_t n, double* a, double* b, double* w )
 // pearson’s correlation coefficient is a measure of linear association
 // two variables can be perfectly related, but if the relationship is not linear,
@@ -2127,7 +2250,6 @@ static double rcond( const size_t n, double** a, double** inva )
   double rcond = ( 1.0 / norm1a ) / norm1inva;
   return rcond;
 }
-
 // -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 // memory functions
 //
@@ -2268,7 +2390,6 @@ void freematrix_t( size_t** a )
   free( ++a );
   _Pragma("GCC diagnostic pop")
 } // freematrix_t
-
 double** getmatrix( const size_t nr, const size_t nc, const double c )
 // allocates matrix space on the heap
 {
@@ -2296,6 +2417,7 @@ void freematrix( double** a )
   free( ++a );
   _Pragma("GCC diagnostic pop")
 } // freematrix
+
 double ***gettensor( const size_t ns, const size_t nr, const size_t nc, const double c )
 // allocates tensor space on the heap
 {
@@ -2330,10 +2452,10 @@ void freetensor( double*** a )
   free( ++a );
   _Pragma("GCC diagnostic pop")
 } // freetensor
-
 // -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 // linear algebra functions
 //
+
 static void Unit_Lower_Triangular_Solve( double* L, double* B, double* x, size_t n )
 // Solve the linear equation Lx = B for x, where L is a unit lower triangular matrix.                                      
 {
@@ -2344,6 +2466,7 @@ static void Unit_Lower_Triangular_Solve( double* L, double* B, double* x, size_t
     for ( size_t i = 0; i < k; i++ ) x[k] -= x[i] * *( L + i );
   }
 } // Unit_Lower_Triangular_Solve
+
 static void Unit_Upper_Triangular_Solve( double* U, double* B, double* x, size_t n )
 // Solve the linear equation Ux = B for x, where U is an upper triangular matrix.                                      
 {
@@ -2356,12 +2479,15 @@ static void Unit_Upper_Triangular_Solve( double* U, double* B, double* x, size_t
 } // Unit_Upper_Triangular_Solve
 
 static int Choleski_LDU_Decomposition( double* a, size_t n )
+											   
+								  
 {
   double *p_i = a + n;
   for ( size_t i = 1; i < n; p_i += n, i++ ) {
     double *p_j = a;
     for ( size_t j = 0; j < i; j++, p_j += n ) {
       for ( size_t k = 0; k < j; k++ ) *( p_i + j ) -= *( p_i + k ) * *( p_j + k );
+					
     }
     double *p_k = a;
     for ( size_t k = 0; k < i; p_k += n, k++ ) {
@@ -2371,7 +2497,12 @@ static int Choleski_LDU_Decomposition( double* a, size_t n )
       *( p_k + i ) = ld;
     }
     if ( *( p_i + i ) <= 0.0 ) return -1;
+										 
+							 
+														
   }
+					  
+				  
   return 0;
 } // Choleski_LDU_Decomposition
 
@@ -2390,7 +2521,7 @@ static int Choleski_LDU_Solve( double* LDU, double* B, double* x, size_t n )
 static int Tridiagonalize( double* V, double* d, double* e, size_t n )
 // Symmetric Householder reduction to tridiagonal form, derived from the algol procedure tred2 
 // by Bowdler, Martin, Reinsch, and Wilkinson, Handbook for auto. Comp., Vol.ii-Linear algebra, 
-// and the corresponding Fortran subroutine in EISPaCK.
+// and the corresponding Fortran subroutine in EISPACK.
 {
   int retval = 0;
   double* V_nm1 = ( V + ( n - 1 ) * n );
@@ -2492,10 +2623,11 @@ static int Tridiagonalize( double* V, double* d, double* e, size_t n )
   return retval;
 } // Tridiagonalize
 
+
 static int Diagonalize( double *V, double *d, double *e, size_t n )
 // Symmetric tridiagonal QL algorithm, derived from the algol procedure tql2, 
 // by Bowdler, Martin, Reinsch, and Wilkinson, Handbook for auto. Comp., Vol.ii-Linear algebra, 
-// and the corresponding Fortran subroutine in EISPaCK.
+// and the corresponding Fortran subroutine in EISPACK.
 {
   int retval = 0;
   const size_t MAXITER = 40;
@@ -2600,6 +2732,7 @@ static int Diagonalize( double *V, double *d, double *e, size_t n )
   return retval;
 } // Diagonalize
 
+
 static int Eigen_Value_Decomposition( double** V, double* D, size_t n )
 {
   int retval = 0;
@@ -2609,6 +2742,232 @@ static int Eigen_Value_Decomposition( double** V, double* D, size_t n )
   freevector( e );
   return retval;
 } // Eigen_Value_Decomposition
+
+static int chdcmp( double* a, size_t n )
+{
+  double *p_Lk0 = a;
+  for ( size_t k = 0; k < n; p_Lk0 += n, k++ ) {
+    double *p_Lkk = p_Lk0 + k;
+    double *p_Lkp = p_Lk0;
+    for ( size_t p = 0; p < k; p_Lkp += 1, p++ ) *p_Lkk -= *p_Lkp * *p_Lkp;
+    if ( *p_Lkk <= 0.0 ) return -1;
+    *p_Lkk = sqrt( *p_Lkk );
+    double reciprocal = 1.0 / *p_Lkk;
+    double *p_Li0 = p_Lk0 + n;
+    for ( size_t i = k + 1; i < n; p_Li0 += n, i++ ) {
+      for ( size_t p = 0; p < k; p++ ) *( p_Li0 + k ) -= *( p_Li0 + p ) * *( p_Lk0 + p );
+      *( p_Li0 + k ) *= reciprocal;
+      *( p_Lk0 + i ) = *( p_Li0 + k );
+    }
+  }
+  return 0;
+} // chdcmp
+
+int evdcmp( const size_t n, double** vecs, double* vals )
+// eigenvalue decomposition a = vwv'
+// matrix vecs is replaced by the eigenvector matrix vecs
+// the eigenvalues are returned in vector vals
+{
+  int retval = 0;
+
+  retval = Eigen_Value_Decomposition( vecs, vals, n );
+
+  return retval;
+} // evdcmp
+
+static int lanczos_matrix( const size_t n, double** a, const size_t m, double* alpha, double* beta, double** v )
+// tridiagonalization using Lanczos algorithm
+// symmetric matrix A, n x n, reduced to tridiagonal matrix, m x m, with alpha as diagonal and beta as subdiagonal
+// also return v for computing full eigenvectors
+// function return zero on success, nonzero otherwise
+{
+  // fast return
+  if ( n == 0 ) return 1;
+
+  // constants
+  const size_t MAXGS = 4;
+  const double TOL = 1.8189894035458617e-12;
+  const double UCRIT = 0.5;
+
+  // allocate memory
+  double* u = getvector( n, 0.0 );
+
+  // initialize variables: v is a vector of unit norm
+  double norm = sqrt( 6.0 / ( double )( n * ( n + 1 ) * ( 2 * n + 1 ) ) );
+  for ( size_t i = 1; i <= n; i++ ) v[1][i] = norm * ( double )( i );
+
+  // main loop
+  double nnew = 0.0;
+  for ( size_t j = 1; j <= m; j++ ) {
+    for ( size_t i = 1; i <= n; i++ ) u[i] = ddot( n, &a[i][1], 1, &v[j][1], 1 );
+    alpha[j] = ddot( n, &v[j][1], 1, &u[1], 1 );
+    if ( j == m ) break;
+
+    // re-orthogonalization (modified Gram-Schmidt)
+    nnew = sqrt( dssq( n, &u[1], 1 ) );
+    for ( size_t iter = 1; iter <= MAXGS; iter++ ) {
+      double nold = nnew;
+      for ( size_t i = 1; i <= j; i++ ) {
+        double r = ddot( n, &u[1], 1, &v[i][1], 1 );
+        daxpy( n, -1.0 * r, &v[i][1], 1, &u[1], 1 );
+      }
+      if ( iter == MAXGS ) dset( n, 0.0, &u[1], 1 );
+      nnew = sqrt( dssq( n, &u[1], 1 ) );
+      if ( nnew >= UCRIT * nold ) break;
+    }
+    beta[j] = nnew;
+    if ( nnew < TOL ) break;
+    daxpy( n, 1.0 / nnew, &u[1], 1, &v[j + 1][1], 1 );
+  }
+
+  // de-allocate memory
+  freevector( u );
+
+  return ( nnew < TOL ? 0 : 1 );
+} // lanczos_matrix
+
+static int lanczos_qr( const size_t n, double* alpha, double* beta, double* vals, double** vecs )
+// implicit shift QR for finding eigenvalues and vectors from tridiagonal matrix with diagonal alpha and subdiagonal beta
+{
+  int retval = 0;
+  const size_t MAXQR = 30;
+  size_t iter = 0;
+  dcopy( n, &alpha[1], 1, &vals[1], 1 );
+  dset( n * n, 0.0, &vecs[1][1], 1 );
+  for ( size_t i = 1; i <= n; i++ ) vecs[i][i] = 1.0;
+  beta[n] = 0.0;
+  for ( size_t l = 1; l <= n; l++ ) {
+    for ( iter = 1; iter <= MAXQR; iter++ ) {
+      size_t m = 0;
+      for ( m = l; m <= n - 1; m++ ) {
+        double dd = fabs( vals[m] ) + fabs( vals[m + 1] );
+        if ( fabs( beta[m] ) + dd == dd ) break;
+      }
+      if ( m != l ) {
+        double g = ( vals[l + 1] - vals[l] ) / ( 2.0 * beta[l] );
+        double r = pythag( 1.0, g );
+        g = vals[m] - vals[l] + beta[l] / ( g + sign( r, g ) );
+        double s = 1.0;
+        double c = 1.0;
+        double p = 0.0;
+        for ( size_t i = m - 1; i >= l; i-- ) {
+          double f = s * beta[i];
+          double b = c * beta[i];
+          if ( fabs( f ) >= fabs( g ) ) {
+            c = g / f;
+            r = pythag( c, 1.0 );
+            beta[i + 1] = f * r;
+            s = 1.0 / r;
+            c = c * s;
+          }
+          else {
+            s = f / g;
+            r = pythag( s, 1.0 );
+            beta[i + 1] = g * r;
+            c = 1.0 / r;
+            s = s * c;
+          }
+          g = vals[i + 1] - p;
+          r = ( vals[i] - g ) * s + 2.0 * c * b;
+          p = s * r;
+          vals[i + 1] = g + p;
+          g = c * r - b;
+          for ( size_t j = 1; j <= n; j++ ) {
+            f = vecs[j][i + 1];
+            vecs[j][i + 1] = s * vecs[j][i] + c * f;
+            vecs[j][i] = c * vecs[j][i] - s * f;
+          }
+        }
+        vals[l] = vals[l] - p;
+        beta[l] = g;
+        beta[m] = 0.0;
+      }
+    }
+  }
+  return retval;
+} // lanczos_qr
+
+static int lanczos_ritz( const size_t n, const size_t m, double** v, double** q, double** vecs )
+// determine Ritz vectors (eigenvectors of A based on eigenvectors of Q and Lanczos' V)
+{
+  int retval = 0;
+  for ( size_t j = 1; j <= n; j++ ) {
+    for ( size_t i = 1; i <= m; i++ ) {
+      double work = 0.0;
+      for ( size_t k = 1; k <= m; k++ ) work += v[k][j] * q[k][i];
+      vecs[j][i] = work;
+    }
+  }
+  return retval;
+} // lanczos_ritz
+
+static int lanczos_sort( const size_t n, const size_t m, double** vecs, double* vals )
+// sort eigenvalues and corresponding vectors
+{
+  int retval = 0;
+  for ( size_t i = 1; i <= m - 1; i++ ) {
+    size_t ii = i;
+    double work = vals[i];
+    for ( size_t j = i + 1; j <= m; j++ ) if ( vals[j] > work ) work = vals[ii = j];
+    if ( ii != i ) {
+      vals[ii] = vals[i];
+      vals[i] = work;
+      for ( size_t j = 1; j <= n; j++ ) {
+        double d = vecs[j][i];
+        vecs[j][i] = vecs[j][ii];
+        vecs[j][ii] = d;
+      }
+    }
+  }
+  return retval;
+} // lanczos_sort
+
+int evdcmp_lanczos( const size_t n, double** a, double** vecs, double* vals, const size_t k )
+// lanczos truncated eigenvalue decomposition of symmetric matrix A, n x n
+// eigenvalues returned in n-vector vals
+// eigenvectors returned in n x k matrix vecs
+// on failure, foolproof jacobi is used instead
+// function return zero on success, nonzero otherwise
+{
+  int retval = 0;
+  const size_t m = min_t( n, 10 + 2 * k );
+
+  double* mvals = getvector( m, 0.0 );
+  double** mvecs = getmatrix( n, m, 0.0 );
+
+  double* alpha = getvector( m, 0.0 );
+  double* beta = getvector( m, 0.0 );
+  double** v = getmatrix( m, n, 0.0 );
+  double** q = getmatrix( m, m, 0.0 );
+
+  retval = lanczos_matrix( n, a, m, alpha, beta, v );
+  if ( 0 == retval ) {
+    retval = lanczos_qr( m, alpha, beta, mvals, q );
+    if ( 0 == retval ) {
+      retval = lanczos_ritz( n, m, v, q, mvecs );
+      if ( 0 == retval ) {
+        retval = lanczos_sort( n, m, mvecs, mvals );
+        if ( 0 == retval ) {
+          for ( size_t j = 1; j <= k; j++ ) {
+            vals[j] = mvals[j];
+            for ( size_t i = 1; i <= n; i++ ) vecs[i][j] = mvecs[i][j];
+          }
+        }
+      }
+    }
+  }
+
+  // de-allocate memory
+  freevector( alpha );
+  freevector( beta );
+  freematrix( v );
+  freematrix( q );
+
+  freevector( mvals );
+  freematrix( mvecs );
+
+  return retval;
+} // evdcmp_lanczos
 
 static void Householders_Reduction_to_Bidiagonal_Form( double* A, size_t nrows, size_t ncols, double* U, double* V, double* diagonal, double* superdiagonal )
 {
@@ -2890,38 +3249,6 @@ static int Singular_Value_Decomposition( double* A, size_t nrows, size_t ncols, 
   if ( retval >= 0 ) Sort_by_Decreasing_Singular_Values( nrows, ncols, singular_values, U, V );
   return retval;
 } // Singular_Value_Decomposition
-
-static int chdcmp( double* a, size_t n )
-{
-  double *p_Lk0 = a;
-  for ( size_t k = 0; k < n; p_Lk0 += n, k++ ) {
-    double *p_Lkk = p_Lk0 + k;
-    double *p_Lkp = p_Lk0;
-    for ( size_t p = 0; p < k; p_Lkp += 1, p++ ) *p_Lkk -= *p_Lkp * *p_Lkp;
-    if ( *p_Lkk <= 0.0 ) return -1;
-    *p_Lkk = sqrt( *p_Lkk );
-    double reciprocal = 1.0 / *p_Lkk;
-    double *p_Li0 = p_Lk0 + n;
-    for ( size_t i = k + 1; i < n; p_Li0 += n, i++ ) {
-      for ( size_t p = 0; p < k; p++ ) *( p_Li0 + k ) -= *( p_Li0 + p ) * *( p_Lk0 + p );
-      *( p_Li0 + k ) *= reciprocal;
-      *( p_Lk0 + i ) = *( p_Li0 + k );
-    }
-  }
-  return 0;
-} // chdcmp
-
-int evdcmp( const size_t n, double** vecs, double* vals )
-// eigenvalue decomposition a = vwv'
-// matrix vecs is replaced by the eigenvector matrix vecs
-// the eigenvalues are returned in vector vals
-{
-  int retval = 0;
-
-  retval = Eigen_Value_Decomposition( vecs, vals, n );
-
-  return retval;
-} // evdcmp
 
 int svdcmp( const size_t n, const size_t m, double** const a, double** const u, double* w, double** const v )
 // singular value decomposition: a = uwvt,
@@ -3254,6 +3581,7 @@ static int solve1x1( const size_t n, double** a, double* b )
   return retval;
 } // solve1x1
 
+
 static int solve2x2( const size_t n, double** a, double* b )
 {
   int retval = 0;
@@ -3269,6 +3597,7 @@ static int solve2x2( const size_t n, double** a, double* b )
   b[2] = dety / det;
   return retval;
 } // solve2x2
+
 
 static int solve3x3( const size_t n, double** a, double* b )
 {
@@ -3300,6 +3629,7 @@ static int solve3x3( const size_t n, double** a, double* b )
   return 0;
 } // solve3x3
 
+
 static int solve4x4( const size_t n, double** a, double* b )
 {
   int retval = inverse4x4( n, a );
@@ -3310,6 +3640,7 @@ static int solve4x4( const size_t n, double** a, double* b )
   freevector( c );
   return retval;
 } // solve4x4
+
 
 static int chsolve( double* LU, double* x, size_t n )
 {
@@ -3328,6 +3659,7 @@ static int chsolve( double* LU, double* x, size_t n )
   return 0;
 }// chsolve
 
+
 static int llsolve( const size_t n, double** a, double* b )
 {
   int retval = 0;
@@ -3338,6 +3670,8 @@ static int llsolve( const size_t n, double** a, double* b )
   return retval;
 } // llsolve
 
+
+
 static int ldlsolve( const size_t n, double** a, double* b )
 {
   int retval = 0;
@@ -3347,6 +3681,7 @@ static int ldlsolve( const size_t n, double** a, double* b )
   }
   return retval;
 } // ldlsolve
+
 
 int solve( const size_t n, double** a, double* b )
 {
@@ -3376,6 +3711,803 @@ int solve( const size_t n, double** a, double* b )
   freevector( save );
   return retval;
 } // solve
+ 
+const size_t MAX_ITERATION_COUNT = 64;
+
+static void Interchange_Rows( double* A, int row1, int row2, int ncols )
+{
+  double *pA1, *pA2;
+  pA1 = A + row1 * ncols;
+  pA2 = A + row2 * ncols;
+  for ( int i = 0; i < ncols; i++ ) {
+    const double temp = *pA1;
+    *pA1++ = *pA2;
+    *pA2++ = temp;
+  }
+} // Interchange_Rows
+
+static void Interchange_Columns( double* A, int col1, int col2, int nrows, int ncols )
+{
+  double *pA1, *pA2;
+  pA1 = A + col1;
+  pA2 = A + col2;
+  for ( int i = 0; i < nrows; pA1 += ncols, pA2 += ncols, i++ ) {
+    const double temp = *pA1;
+    *pA1 = *pA2;
+    *pA2 = temp;
+  }
+} // Interchange_Columns
+
+static int Search_Rows( double* A, int* p, int n )
+{
+  double* pA;
+  int j;
+  int bottom_center_block = n - 1;
+  pA = A + bottom_center_block * n;
+  for ( int i = bottom_center_block; i >= 0; i--, pA -= n ) {
+    for ( j = 0; j < i; j++ ) if ( *( pA + j ) != 0.0 ) break;
+    if ( j < i ) continue;
+    for ( j = i + 1; j < n; j++ ) if ( *( pA + j ) != 0.0 ) break;
+    if ( j < n ) continue;
+    Interchange_Rows( A, i, bottom_center_block, n );
+    Interchange_Columns( A, i, bottom_center_block, n, n );
+    p[bottom_center_block] = i;
+    bottom_center_block--;
+  }
+  return bottom_center_block;
+} // Search_Rows
+
+static int Search_Cols( double* A, int* p, int bottom_center_block, int n )
+{
+  double* pA;
+  int j;
+  int top_center_block = 0;
+  pA = A + 1;
+  for ( int i = 0; i < bottom_center_block; pA = A + ++i ) {
+    for ( j = 0; j < i; j++, pA += n ) if ( *pA != 0.0 ) break;
+    if ( j < i ) continue;
+    pA += n;
+    for ( j = i + 1; j < n; j++, pA += n ) if ( *pA != 0.0 ) break;
+    if ( j < n ) continue;
+    if ( i > top_center_block ) {
+      Interchange_Rows( A, i, top_center_block, n );
+      Interchange_Columns( A, i, top_center_block, n, n );
+      p[top_center_block] = i;
+      i--;
+    }
+    top_center_block++;
+  }
+  return top_center_block;
+} // Search_Cols
+
+static double Power_of_2( double x )
+{
+  long k = ( long )( log( 0.5 * x ) / log( 4.0 ) );
+  double y = pow( 2.0, k );
+  while ( x <= ( y * y * 0.5) ) y /= 2.0;
+  while ( x > (2.0 * y * y) ) y *= 2.0;
+  return y;
+} // Power_of_2
+
+static void Balance_Matrix( double* A, int n )
+{
+  int i, j;
+  int top_center_block, bottom_center_block;
+  double* pA, * pC, * pTop;
+  double col_norm, row_norm;
+  double x, y, z;
+  int* p = ( int* ) malloc( ( n + 2 ) * sizeof( int ) );
+  for ( i = 0; i < n; i++ ) p[i] = i;
+  double* d = ( double* ) malloc( n * sizeof( double ) );
+  for ( i = 0; i < n; i++ ) d[i] = 1.0;
+  bottom_center_block = Search_Rows( A, p, n );
+  p[n + 1] = bottom_center_block;
+  top_center_block = Search_Cols( A, p, bottom_center_block, n );
+  p[n] = top_center_block;
+  if ( top_center_block >= bottom_center_block ) return;
+  bool converged = false;
+  while ( !converged ) {
+    converged = true;
+    pTop = A + top_center_block * n;
+    pA = pTop;
+    for ( i = top_center_block; i <= bottom_center_block; i++, pA += n ) {
+      col_norm = 0.0;
+      row_norm = 0.0;
+      pC = pTop + i;
+      for ( j = top_center_block; j <= bottom_center_block; j++, pC += n ) {
+        if ( j == i ) continue;
+        col_norm += fabs( *pC );
+        row_norm += fabs( *( pA + j ) );
+      }
+      x = row_norm / col_norm;
+      y = Power_of_2( x );
+      z = 1.0 / y;
+      if ( ( col_norm * y + row_norm * z ) < 0.95 * ( col_norm + row_norm ) ) {
+        d[i] *= y;
+        pC = A + i;
+        for ( j = 0; j <= bottom_center_block; j++, pC += n ) *pC *= y;
+        for ( j = top_center_block; j < n; j++ ) *( pA + j ) *= z;
+        converged = false;
+      }
+    }
+  }
+  free( p );
+  free( d );
+} // Balance_Matrix
+
+static void Identity_Matrix( double* A, int n )
+{
+  for ( int i = 0; i < n - 1; i++ ) {
+    *A++ = 1.0;
+    for ( int j = 0; j < n; j++ ) *A++ = 0.0;
+  }
+  *A = 1.0;
+} // Identity_Matrix
+
+static void Hessenberg_Elementary_Transform( double* H, double* S, int* perm, int n )
+{
+  int i, j;
+  double* pS, * pH;
+  Identity_Matrix( S, n );
+  for ( i = n - 2; i >= 1; i-- ) {
+    pH = H + n * ( i + 1 );
+    pS = S + n * ( i + 1 );
+    for ( j = i + 1; j < n; pH += n, pS += n, j++ ) {
+      *( pS + i ) = *( pH + i - 1 );
+      *( pH + i - 1 ) = 0.0;
+    }
+    if ( perm[i] != i ) {
+      pS = S + n * i;
+      pH = S + n * perm[i];
+      for ( j = i; j < n; j++ ) {
+        *( pS + j ) = *( pH + j );
+        *( pH + j ) = 0.0;
+      }
+      *( pH + i ) = 1.0;
+    }
+  }
+} // Identity_Matrix
+
+static int Hessenberg_Form_Elementary( double* A, double* S, int n )
+{
+  int i, j, col, row;
+  int* perm;
+  double* p_row, * pS_row;
+  double max;
+  double s;
+  double* pA, * pB, * pC, * pS;
+  if ( n <= 1 ) {
+    *S = 1.0; return 0;
+  }
+  if ( n == 2 ) {
+    *S++ = 1.0; *S++ = 0.0; *S++ = 1.0; *S = 0.0; return 0;
+  }
+  perm = ( int* ) malloc( n * sizeof( int ) );
+  if ( perm == NULL ) return -1;
+  p_row = A + n;
+  pS_row = S + n;
+  for ( col = 0; col < ( n - 2 ); p_row += n, pS_row += n, col++ ) {
+    row = col + 1;
+    perm[row] = row;
+    for ( pA = p_row + col, max = 0.0, i = row; i < n; pA += n, i++ )
+      if ( fabs( *pA ) > max ) {
+        perm[row] = i; max = fabs( *pA );
+      }
+    if ( perm[row] != row ) {
+      Interchange_Rows( A, row, perm[row], n );
+      Interchange_Columns( A, row, perm[row], n, n );
+    }
+    pA = p_row + n;
+    pS = pS_row + n;
+    for ( i = col + 2; i < n; pA += n, pS += n, i++ ) {
+      s = *( pA + col ) / *( p_row + col );
+      for ( j = 0; j < n; j++ )
+        *( pA + j ) -= *( p_row + j ) * s;
+      *( pS + col ) = s;
+      for ( j = 0, pB = A + col + 1, pC = A + i; j < n; pB += n, pC += n, j++ )
+        *pB += s * *pC;
+    }
+  }
+  pA = A + n + n;
+  pS = S + n + n;
+  for ( i = 2; i < n; pA += n, pS += n, i++ ) dcopy( i - 1, pA, 1, pS, 1 );
+  Hessenberg_Elementary_Transform( A, S, perm, n );
+  free( perm );
+  return 0;
+} // Hessenberg_Form_Elementary
+
+static void One_Real_Eigenvalue( double* Hrow, double* eigen_real, double* eigen_imag, int row, double shift )
+{
+  Hrow[row] += shift;
+  eigen_real[row] = Hrow[row];
+  eigen_imag[row] = 0.0;
+} // One_Real_Eigenvalue
+
+static void Update_Row( double* Hrow, double cos, double sin, int n, int row )
+{
+  double x;
+  double* Hnextrow = Hrow + n;
+  int i;
+  for ( i = row; i < n; i++ ) {
+    x = Hrow[i];
+    Hrow[i] = cos * x + sin * Hnextrow[i];
+    Hnextrow[i] = cos * Hnextrow[i] - sin * x;
+  }
+} // Update_Row
+
+static void Update_Column( double* H, double cos, double sin, int n, int col )
+{
+  double x;
+  int i;
+  int next_col = col + 1;
+  for ( i = 0; i <= next_col; i++, H += n ) {
+    x = H[col];
+    H[col] = cos * x + sin * H[next_col];
+    H[next_col] = cos * H[next_col] - sin * x;
+  }
+} // Update_Column
+
+static void Update_Transformation( double* S, double cos, double sin, int n, int k )
+{
+  double x;
+  int i;
+  int k1 = k + 1;
+  for ( i = 0; i < n; i++, S += n ) {
+    x = S[k];
+    S[k] = cos * x + sin * S[k1];
+    S[k1] = cos * S[k1] - sin * x;
+  }
+} // Update_Transformation
+
+static void Two_Eigenvalues( double* H, double* S, double* eigen_real, double* eigen_imag, int n, int row, double shift )
+{
+  double p, q, x, discriminant, r;
+  double cos, sin;
+  double* Hrow = H + n * row;
+  double* Hnextrow = Hrow + n;
+  int nextrow = row + 1;
+  p = 0.5 * ( Hrow[row] - Hnextrow[nextrow] );
+  x = Hrow[nextrow] * Hnextrow[row];
+  discriminant = p * p + x;
+  Hrow[row] += shift;
+  Hnextrow[nextrow] += shift;
+  if ( discriminant > 0.0 ) {
+    q = sqrt( discriminant );
+    if ( p < 0.0 ) q = p - q; else q += p;
+    eigen_real[row] = Hnextrow[nextrow] + q;
+    eigen_real[nextrow] = Hnextrow[nextrow] - x / q;
+    eigen_imag[row] = 0.0;
+    eigen_imag[nextrow] = 0.0;
+    r = sqrt( Hnextrow[row] * Hnextrow[row] + q * q );
+    sin = Hnextrow[row] / r;
+    cos = q / r;
+    Update_Row( Hrow, cos, sin, n, row );
+    Update_Column( H, cos, sin, n, row );
+    Update_Transformation( S, cos, sin, n, row );
+  }
+  else {
+    eigen_real[nextrow] = eigen_real[row] = Hnextrow[nextrow] + p;
+    eigen_imag[row] = sqrt( fabs( discriminant ) );
+    eigen_imag[nextrow] = -eigen_imag[row];
+  }
+} // Two_Eigenvalues
+
+static void Product_and_Sum_of_Shifts( double* H, int n, int max_row, double* shift, double* trace, double* det, int iteration )
+{
+  double* pH = H + max_row * n;
+  double* p_aux;
+  int i;
+  int min_col = max_row - 1;
+  if ( ( iteration % 10 ) == 0 ) {
+    *shift += pH[max_row];
+    for ( i = 0, p_aux = H; i <= max_row; p_aux += n, i++ ) p_aux[i] -= pH[max_row];
+    p_aux = pH - n;
+    *trace = fabs( pH[min_col] ) + fabs( p_aux[min_col - 1] );
+    *det = *trace * *trace;
+    *trace *= 1.5;
+  }
+  else {
+    p_aux = pH - n;
+    *trace = p_aux[min_col] + pH[max_row];
+    *det = p_aux[min_col] * pH[max_row] - p_aux[max_row] * pH[min_col];
+  }
+} // Product_and_Sum_of_Shifts
+
+static int Two_Consecutive_Small_Subdiagonal( double* H, int min_row, int max_row, int n, double trace, double det )
+{
+  double x, y, z, s;
+  double* pH;
+  int i, k;
+  for ( k = max_row - 2, pH = H + k * n; k >= min_row; pH -= n, k-- ) {
+    x = ( pH[k] * ( pH[k] - trace ) + det ) / pH[n + k] + pH[k + 1];
+    y = pH[k] + pH[n + k + 1] - trace;
+    z = pH[n + n + k + 1];
+    s = fabs( x ) + fabs( y ) + fabs( z );
+    x /= s;
+    y /= s;
+    z /= s;
+    if ( k == min_row ) break;
+    if ( ( fabs( pH[k - 1] ) * ( fabs( y ) + fabs( z ) ) ) <= DBL_EPSILON * fabs( x ) * ( fabs( pH[k - 1 - n] ) + fabs( pH[k] ) + fabs( pH[n + k + 1] ) ) ) break;
+  }
+  for ( i = k + 2, pH = H + i * n; i <= max_row; pH += n, i++ ) pH[i - 2] = 0.0;
+  for ( i = k + 3, pH = H + i * n; i <= max_row; pH += n, i++ ) pH[i - 3] = 0.0;
+  return k;
+} // Two_Consecutive_Small_Subdiagonal
+
+static void Double_QR_Step( double* H, int min_row, int max_row, int min_col, double trace, double det, double* S, int n )
+{
+  double s, x = 0.0, y, z;
+  double a, b, c;
+  double* pH;
+  double* tH;
+  double* pS;
+  int i, j, k;
+  int last_test_row_col = max_row - 1;
+  k = min_col;
+  pH = H + min_col * n;
+  a = ( pH[k] * ( pH[k] - trace ) + det ) / pH[n + k] + pH[k + 1];
+  b = pH[k] + pH[n + k + 1] - trace;
+  c = pH[n + n + k + 1];
+  s = fabs( a ) + fabs( b ) + fabs( c );
+  a /= s;
+  b /= s;
+  c /= s;
+  for ( ; k <= last_test_row_col; k++, pH += n ) {
+    if ( k > min_col ) {
+      c = ( k == last_test_row_col ) ? 0.0 : pH[n + n + k - 1];
+      x = fabs( pH[k - 1] ) + fabs( pH[n + k - 1] ) + fabs( c );
+      if ( x == 0.0 ) continue;
+      a = pH[k - 1] / x;
+      b = pH[n + k - 1] / x;
+      c /= x;
+    }
+    s = sqrt( a * a + b * b + c * c );
+    if ( a < 0.0 ) s = -s;
+    if ( k > min_col ) pH[k - 1] = -s * x;
+    else if ( min_row != min_col ) pH[k - 1] = -pH[k - 1];
+    a += s;
+    x = a / s;
+    y = b / s;
+    z = c / s;
+    b /= a;
+    c /= a;
+    for ( j = k; j < n; j++ ) {
+      a = pH[j] + b * pH[n + j];
+      if ( k != last_test_row_col ) {
+        a += c * pH[n + n + j];
+        pH[n + n + j] -= a * z;
+      }
+      pH[n + j] -= a * y;
+      pH[j] -= a * x;
+    }
+    j = k + 3;
+    if ( j > max_row ) j = max_row;
+    for ( i = 0, tH = H; i <= j; i++, tH += n ) {
+      a = x * tH[k] + y * tH[k + 1];
+      if ( k != last_test_row_col ) {
+        a += z * tH[k + 2];
+        tH[k + 2] -= a * c;
+      }
+      tH[k + 1] -= a * b;
+      tH[k] -= a;
+    }
+    for ( i = 0, pS = S; i < n; pS += n, i++ ) {
+      a = x * pS[k] + y * pS[k + 1];
+      if ( k != last_test_row_col ) {
+        a += z * pS[k + 2];
+        pS[k + 2] -= a * c;
+      }
+      pS[k + 1] -= a * b;
+      pS[k] -= a;
+    }
+  }
+} // Double_QR_Step
+
+static void Double_QR_Iteration( double* H, double* S, int min_row, int max_row, int n, double* shift, int iteration )
+{
+  int k;
+  double trace, det;
+  Product_and_Sum_of_Shifts( H, n, max_row, shift, &trace, &det, iteration );
+  k = Two_Consecutive_Small_Subdiagonal( H, min_row, max_row, n, trace, det );
+  Double_QR_Step( H, min_row, max_row, k, trace, det, S, n );
+} // Double_QR_Iteration
+
+static int QR_Hessenberg_Matrix_Eigenvalues( double* H, double* S, double* eigen_real, double* eigen_imag, int n, int max_iteration_count )
+{
+  int i;
+  int row;
+  int iteration;
+  int found_eigenvalue;
+  double shift = 0.0;
+  double* pH;
+  for ( row = n - 1; row >= 0; row-- ) {
+    found_eigenvalue = 0;
+    for ( iteration = 1; iteration <= max_iteration_count; iteration++ ) {
+      for ( i = row, pH = H + row * n; i > 0; i--, pH -= n )
+        if ( fabs( *( pH + i - 1 ) ) <= DBL_EPSILON * ( fabs( *( pH - n + i - 1 ) ) + fabs( *( pH + i ) ) ) ) break;
+      switch ( row - i ) {
+        case 0:
+          One_Real_Eigenvalue( pH, eigen_real, eigen_imag, i, shift );
+          found_eigenvalue = 1;
+          break;
+        case 1:
+          row--;
+          Two_Eigenvalues( H, S, eigen_real, eigen_imag, n, row, shift );
+          found_eigenvalue = 1;
+          break;
+        default:
+          Double_QR_Iteration( H, S, i, row, n, &shift, iteration );
+      }
+      if ( found_eigenvalue ) break;
+    }
+    if ( iteration > max_iteration_count ) return -1;
+  }
+  return 0;
+} // QR_Hessenberg_Matrix_Eigenvalues
+
+int max_eigen_hessenberg( const size_t n, double** const a, double* mx )
+{
+  int retval = 0;
+  double maxe = 0.0;
+  double** aa = getmatrix( n, n, 0.0 );
+  dcopy( n * n, &a[1][1], 1, &aa[1][1], 1 );
+  Balance_Matrix( &aa[1][1], ( int )( n ) );
+  double** s = getmatrix( n, n, 0.0 );
+  retval = Hessenberg_Form_Elementary( &aa[1][1], &s[1][1], ( int )( n ) );
+  if ( retval == 0 ) {
+    double* wr = getvector( n, 0.0 );
+    double* wi = getvector( n, 0.0 );
+    retval = QR_Hessenberg_Matrix_Eigenvalues( &aa[1][1], &s[1][1], &wr[1], &wi[1], ( int )( n ), MAX_ITERATION_COUNT );
+    if ( retval == 0 ) {
+      maxe = -DBL_MAX;
+      for ( size_t i = 1; i <= n; i++ ) {
+        if ( iszero( wi[i] ) ) {
+          if ( wr[i] > maxe ) maxe = wr[i];
+        }
+      }
+    }
+    freevector( wr );
+    freevector( wi );
+  }
+  freematrix( s );
+  freematrix( aa );
+  ( *mx ) = maxe;
+  return retval;
+} // Max_Eigen_Value
+
+static void balance( const size_t n, double** a )
+{
+  const double RADIX = 2.0;
+  const double sqrdx = RADIX * RADIX; 
+  bool restart = true; 
+  while ( restart == true ) {
+    restart = false; 
+    for ( size_t i = 1; i <= n; i++ ) {
+      double r = 0.0; 
+      double c = 0.0; 
+      for ( size_t j = 1; j <= n; j++ ) if ( j != i ) {
+        c += fabs ( a[j][i] ); 
+        r += fabs ( a[i][j] ); 
+      }
+      if ( c && r ) {                  // replace with iszero()'s
+        double g = r / RADIX; 
+        double f = 1.0; 
+        const double s = c + r; 
+        while ( c < g ) {
+          f *= RADIX; 
+          c *= sqrdx; 
+        }
+        g = r * RADIX; 
+        while ( c > g ) {
+          f /= RADIX; 
+          c /= sqrdx; 
+        }
+        if ( ( c + r ) / f < 0.95 * s ) {
+          restart = true; 
+          g = 1.0 / f; 
+          for ( size_t j = 1; j <= n; j++ ) a[i][j] *= g; 
+          for ( size_t j = 1; j <= n; j++ ) a[j][i] *= f; 
+        }
+      }
+    }
+  }
+} // balance
+
+static void elmhes( const size_t n, double** a )
+{
+  for ( size_t m = 2; m < n; m++ ) {
+    double x = 0.0; 
+    size_t i = m; 
+    for ( size_t j = m; j <= n; j++ ) if ( fabs( a[j][m-1] ) > fabs( x ) ) {
+      x = a[j][m-1]; 
+      i = j; 
+    }
+    if ( i != m ) {
+      for ( size_t j = m - 1; j <= n; j++ ) {
+        const double tmp = a[i][j];
+        a[i][j] = a[m][j];
+        a[m][j] = tmp;
+      }
+      for ( size_t j = 1; j <= n; j++ ) {
+        const double tmp = a[j][i];
+        a[j][i] = a[j][m];
+        a[j][m] = tmp;
+      }
+    }
+    if ( x ) {                                        // replace with isnotzero()
+      double y = 0.0;
+      for ( size_t i = m + 1; i <= n; i++ ) {
+        if ( ( y = a[i][m - 1] ) ) {
+          y /= x; 
+          a[i][m - 1]= y; 
+          for ( size_t j = m; j <= n; j++ ) a[i][j] -= y*a[m][j]; 
+          for ( size_t j = 1; j <= n; j++ ) a[j][m] += y*a[j][i]; 
+        }
+      }
+    }
+  }
+} // elmhes
+
+static int hqr( const size_t n, double** const a, double* mx )
+{
+  int retval = 0;
+  long nn, m, l, k, j, i, mmin;
+  long its = 0; 
+  nn = ( long )( n ); 
+
+  double maxe = 0.0;
+
+  double* wr = getvector( n, 0.0 );
+  double* wi = getvector( n, 0.0 );
+ 
+  double p = 0.0; 
+  double q = 0.0; 
+  double r = 0.0; 
+  double s = 0.0; 
+  double t = 0.0; 
+  double u = 0.0; 
+  double v = 0.0; 
+  double w = 0.0; 
+  double x = 0.0; 
+  double y = 0.0; 
+  double z = 0.0; 
+  double anorm = 0.0; 
+
+  for ( i = 1; i <= n; i++ ) for ( j = max_t( i - 1, 1 ); j <= n; j++ ) anorm += fabs( a[i][j] ); 
+  while ( nn >= 1 ) {
+    if ( its == 30 ) break;
+    else its = 0; 
+    do {
+      for ( l = nn; l >= 2; l-- ) {
+        s = fabs( a[l-1][l-1] ) + fabs( a[l][l] ); 
+        if ( s == 0.0 ) s = anorm;                                     // iszero()
+        if ( ( double )( fabs( a[l][l-1] ) + s ) == s ) {              // iszero()
+          a[l][l-1]= 0.0; 
+          break; 
+        }
+      }
+      x = a[nn][nn]; 
+      if ( l == nn ) {
+        wr[nn] = x + t; 
+        wi[nn--] = 0.0; 
+      } else {
+        y = a[nn-1][nn-1]; 
+        w = a[nn][nn-1] * a[nn-1][nn]; 
+        if ( l == ( nn - 1 ) ) {
+          p = 0.5 * ( y - x ); 
+          q = p * p + w; 
+          z = sqrt( fabs( q ) ); 
+          x += t; 
+          if ( q >= 0.0 ) {
+            z = p + sign( z, p );           // correct way ???
+            wr[nn-1] = wr[nn] = x + z; 
+            if ( z ) wr[nn] = x - w / z;       // iszero()
+            wi[nn-1] = wi[nn] = 0.0; 
+          } else {
+            wr[nn-1] = wr[nn] = x + p; 
+            wi[nn-1] = -( wi[nn] = z ); 
+          }
+          nn -= 2; 
+        } else {
+          if ( its == 30 ) break; 
+          if ( its == 10 || its == 20 ) {
+            t += x; 
+            for ( i = 1; i <= nn; i ++ ) a[i][i] -= x; 
+            s = fabs( a[nn][nn-1] ) + fabs( a[nn-1][nn-2] ); 
+            y = x = 0.75 * s; 
+            w = -0.4375 * s * s; 
+          }
+          ++its;
+          for ( m = ( nn - 2 ); m >= l; m-- ) {
+            z = a[m][m]; 
+            r = x - z; 
+            s = y - z; 
+            p = ( r * s - w ) / a[m+1][m] + a[m][m+1]; 
+            q = a[m+1][m+1] - z - r - s; 
+            r = a[m+2][m+1]; 
+            s = fabs( p ) + fabs( q ) + fabs( r ); 
+            p /= s; 
+            q /= s; 
+            r /= s; 
+            if ( m == l ) break; 
+            u = fabs( a[m][m-1] ) * ( fabs( q ) + fabs( r ) ); 
+            v = fabs( p ) * ( fabs( a[m-1][m-1] ) + fabs( z ) + fabs( a[m+1][m+1] ) ); 
+            if ( ( double )( u + v ) == v ) break;                                         // iszero()
+          }
+          for ( i = m + 2; i <= nn; i ++ ) a[i][i-2] = 0.0; 
+          for ( i = m + 3; i <= nn; i ++ ) a[i][i-3] = 0.0; 
+          for ( k = m; k <= nn - 1; k ++ ) {
+            if ( k != m ) {
+              p = a[k][k-1]; 
+              q = a[k+1][k-1]; 
+              r = ( k == ( nn - 1 ) ? 0.0 : a[k+2][k-1] ); 
+              if ( ( x = fabs ( p )+ fabs ( q )+ fabs ( r ) ) != 0.0 ) {    // iszero()
+                p /= x; 
+                q /= x; 
+                r /= x; 
+              }
+            }
+            if ( ( s = sign( sqrt( p * p + q * q + r * r ), p ) ) != 0.0 ) {   // iszero()
+              if ( k == m ) {
+                if ( l != m ) a[k][k-1] = -a[k][k-1]; 
+              } else a[k][k-1] = -s * x; 
+              p += s; 
+              x = p / s; 
+              y = q / s; 
+              z = r / s; 
+              q /= p; 
+              r /= p; 
+              for ( j = k; j <= nn; j ++ ) {
+                p = a[k][j] + q * a[k+1][j]; 
+                if ( k != ( nn - 1 ) ) {
+                  p += r * a[k+2][j]; 
+                  a[k+2][j] -= p * z; 
+                }
+                a[k+1][j] -= p * y; 
+                a[k][j] -= p * x; 
+              }
+              mmin = ( nn < k + 3 ? nn : k + 3 ); 
+              for ( i = l; i <= mmin; i ++ ) {
+                p = x * a[i][k] + y * a[i][k+1]; 
+                if ( k != ( nn - 1 ) ) {
+                  p += z * a[i][k+2]; 
+                  a[i][k+2] -= p * r; 
+                }
+                a[i][k+1] -= p * q; 
+                a[i][k] -= p; 
+              }
+            }
+          }
+        }
+      }
+    } while ( l < nn - 1 ); 
+  }
+  if ( its < 30 ) {
+    maxe = -DBL_MAX;
+    for ( size_t i = 1; i <= n; i++ ) {
+      if ( iszero( wi[i] ) ) {
+        if ( wr[i] > maxe ) maxe = wr[i];
+      }
+    }
+  }
+  freevector( wr );
+  freevector( wi );
+  ( *mx ) = maxe;
+  return retval;
+} // hqr
+
+int max_eigen_186( const size_t n, double** const a, double* mx )
+{
+  balance( n, a );
+  elmhes( n, a );
+  double maxe = 0.0;
+  int retval = hqr( n, a, &maxe );
+  ( *mx ) = maxe;
+  return( retval );
+} // max_eigen_186
+
+static int arnoldi_matrix( const size_t n, double** a, size_t m, double** h )
+// return Krylov subspace h for truncated eigenvalue decomposition of asymmetric matrix a
+// in some cases, m can be reduced, anyway, h is upper-Hessenberg format
+{
+  // fast return
+  if ( n == 0 ) return 1;
+
+  // constants
+  const size_t MAXGS = 4;
+  const double TOL = 1.8189894035458617e-12;
+  const double ZCRIT = 0.5;
+
+  // memory allocation
+  double** q = getmatrix( m, n, 0.0 );
+  double* z = getvector( n, 0.0 );
+
+  // initialize variables: v is a vector of unit norm
+  double norm = sqrt( 6.0 / ( double )( n * ( n + 1 ) * ( 2 * n + 1 ) ) );
+  for ( size_t i = 1; i <= n; i++ ) q[1][i] = norm * ( double )( i );
+
+  size_t j = 0;
+  double beta = 0.0;
+  for ( j = 1; j <= m; j++ ) {
+    for ( size_t i = 1; i <= n; i++ ) z[i] = ddot( n, &a[i][1], 1, &q[j][1], 1 );
+
+    // re-orthogonalization (modified Gram-Schmidt)
+    double nnew = sqrt( dssq( n, &z[1], 1 ) );
+    for ( size_t iter = 1; iter <= MAXGS; iter++ ) {
+      double nold = nnew;
+      for ( size_t i = 1; i <= j; i++ ) {
+        double alpha = ddot( n, &z[1], 1, &q[i][1], 1 );
+        h[i][j] += alpha;
+        daxpy( n, -1.0 * alpha, &q[i][1], 1, &z[1], 1 );
+      }
+      if ( iter == MAXGS ) dset( n, 0.0, &z[1], 1 );
+      nnew = sqrt( dssq( n, &z[1], 1 ) );
+      if ( nnew >= ZCRIT * nold ) break;  // normal return
+    }
+    if ( j == m ) break;  // normal return
+
+    beta = nnew;
+    h[j + 1][j] = beta;
+    if ( beta < TOL ) break;
+    daxpy( n, 1.0 / beta, &z[1], 1, &q[j + 1][1], 1 );
+  }
+
+  // de-allocate memory
+  freematrix( q );
+  freevector( z );
+
+  return ( beta < DBL_EPSILON ? 1 : 0 );
+} // arnoldi_matrix
+
+int max_eigen_arnoldi( const size_t n, double** const a, const size_t nvecs, double* mx )
+// reduces input matrix using Arnoldi
+// and finds maximum eigenvalue with QR algorithm
+{
+  // initialize
+  int retval = 0;
+  double maxa = 0.0;
+
+  // arnoldi reduction
+  size_t snt = n;
+  double dn = ( double )( snt );
+  double work = 50.0 + 2.0 * sqrt( dn );
+  size_t mdef = min_t( n, ( size_t )( work ) );
+  size_t m = ( nvecs == 0 || nvecs > n ? mdef : max_t( 1, min_t( n, nvecs ) ) );
+  double** hm = getmatrix( m, m, 0.0 );
+  retval = arnoldi_matrix( n, a, m, hm );
+
+  // maximum eigenvalue using QR
+  if ( retval == 0 ) {
+    double** hk = getmatrix( m, m, 0.0 );
+    for ( size_t i = 1; i <= m; i++ ) for ( size_t j = 1; j <= m; j++ ) hk[i][j] = hm[i][j];
+    double* wr = getvector( m, 0.0 );
+    double* wi = getvector( m, 0.0 );
+
+    dset( m * m, 0.0, &hm[1][1], 1 );
+    dset( m, 1.0, &hm[1][1], m + 1 );
+    retval = QR_Hessenberg_Matrix_Eigenvalues( &hk[1][1], &hm[1][1], &wr[1], &wi[1], m, MAX_ITERATION_COUNT );
+
+    freematrix( hk );
+
+    // get maximum value
+    if ( retval == 0 ) {
+      maxa = -DBL_MAX;
+      for ( size_t i = 1; i <= m; i++ ) {
+        if ( iszero( wi[i] ) ) {
+          if ( wr[i] > maxa ) maxa = wr[i];
+        }
+      }
+    }
+    freevector( wr );
+    freevector( wi );
+  }
+  freematrix( hm );
+
+  *mx = maxa;
+
+  // return value
+  return retval;
+} // maxarnoldi
 
 static void lstsq( const size_t m, double** xtx, double* xty, bool* p, double* b )
 // solve y = Xb for b and return b
@@ -3417,6 +4549,7 @@ static int fastnnls( const size_t n, const size_t m, double** x, double** xtx, d
   }
 
   // allocate memory
+		  
   double* xty = getvector( m, 0.0 );
   double* r = getvector( m, 0.0 );         // Lagrange multipliers
   bool* pnew = getbvector( m, false );     // all in passive set
@@ -3430,6 +4563,7 @@ static int fastnnls( const size_t n, const size_t m, double** x, double** xtx, d
       work += x[k][i] * y[k];
     }
     r[i] = xty[i] = work;                  // initial Lagrange multipliers (for b = 0)
+
   }
 
   // set tolerance criterion
@@ -3438,6 +4572,7 @@ static int fastnnls( const size_t n, const size_t m, double** x, double** xtx, d
     const double work = asum( m, &xtx[1][j], m );
     if ( work > sm ) sm = work;
   }
+
   const double TOL = 10.0 * ( double )( m ) * sm * DBL_EPSILON;
   const size_t MAXITER = 30 * m;
 
@@ -3495,6 +4630,7 @@ static int fastnnwls( const size_t n, const size_t m, double** x, double** xtwx,
   }
 
   // allocate memory
+		   
   double* xtwy = getvector( m, 0.0 );
   double* r = getvector( m, 0.0 );         // Lagrange multipliers
   bool* pnew = getbvector( m, false );
@@ -3506,6 +4642,7 @@ static int fastnnwls( const size_t n, const size_t m, double** x, double** xtwx,
     double work = 0.0;
     for ( size_t k = 1; k <= n; k++ ) work += x[k][i] * w[k] * y[k];
     r[i] = xtwy[i] = work;                 // initial Lagrange multipliers (for b = 0)
+  
   }
 
   // set convergence criterion
@@ -3554,7 +4691,6 @@ static int fastnnwls( const size_t n, const size_t m, double** x, double** xtwx,
 
   return 0;
 } // fastnnwls
-
 // -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 // transformation functions
 //
@@ -3580,6 +4716,7 @@ void nnintercept( const bool symmetric, const size_t n, double** x, double** y, 
   else {
     if ( symmetric == true ) {
       for ( size_t i = 2; i <= n; i++ ) {
+					  
         for ( size_t j = 1; j < i; j++ ) if ( isnotzero( w[i][j] ) && x[i][j] < xmin ) xmin = x[i][j];
       }
     }
@@ -3589,6 +4726,7 @@ void nnintercept( const bool symmetric, const size_t n, double** x, double** y, 
       }
     }
   }
+			 
 
   double sumw = 0.0;
   double wsumx = 0.0;
@@ -3653,7 +4791,7 @@ void nnintercept( const bool symmetric, const size_t n, double** x, double** y, 
 } // nnintercept
 
 void nnslope( const bool symmetric, const size_t n, double** x, double** y, const double mconst, double** w, double** r )
-// function: y = b1 * x
+// function: y = b * x
 // transform x such that min ||b*x-y|| for b >= 0.0
 {
   double wssqx = 0.0;
@@ -3712,8 +4850,13 @@ void nnslope( const bool symmetric, const size_t n, double** x, double** y, cons
   const double b = ( cross < 0.0 ? 0.0 : cross / wssqx );
   if ( isnotzero( b ) ) {
     for ( size_t i = 1; i <= n; i++ ) for ( size_t j = 1; j <= n; j++ ) if ( i != j ) r[i][j] = b * x[i][j];
+																		
   }
 } // nnslope
+
+
+
+
 
 void nnlinear( const bool symmetric, const size_t n, double** x, double** y, const double mconst, double** w, double** r )
 // function: y = a + b * x
@@ -4109,15 +5252,15 @@ void nnboxcox( const bool symmetric, const size_t n, double** x, double** y, con
   for ( size_t i = 1; i <= n; i++ ) for ( size_t j = 1; j <= n; j++ ) if ( i != j ) r[i][j]  = ( vc < -DBL_EPSILON || vc > DBL_EPSILON ? ( pow( x[i][j] + 1.0, vc ) - 1.0 ) / vc : log( x[i][j] + 1.0 ) );
 } // nnboxcox
 
-static void monotone( const size_t n, double* x, double* w )
+void monotone( const size_t n, double* x, double* w )
 // monotone or isotonic regression by pool-adjacent-violators algorithm
-// author: Frank M.T.a. Busing
+// author: Frank M.T.A. Busing
 {
   // allocate memory
   double* __restrict rx = &x[0];
   double* __restrict rw = &w[0];
   size_t* __restrict idx = ( size_t* ) calloc( n + 1, sizeof( size_t ) );
-  
+
   // initialize
   idx[0] = 0;
   idx[1] = 1;
@@ -4648,6 +5791,7 @@ void polynomialcoefficients( const bool symmetric, const size_t n, double** d, d
   }
 
   // perform fast nonnegative weighted least squares to find regression weights
+					 			 
   if ( isnull( w ) ) fastnnls( nn, m, base, bstbs, b, vd );
   else fastnnwls( nn, m, base, NULL, b, vd, vw );
   freevector( vd );
@@ -5477,7 +6621,7 @@ void printerror( char* title )
     Rprintf( "error: %s\n", title );
   #else
     printf( "error: %s\n", title );
-    exit( 0 );
+	exit( 0 );
   #endif
 } // printpass
 
@@ -5606,7 +6750,7 @@ double** readmatrix( char* infilename, size_t *n, size_t *m )
     FILE *infile;
     infile = fopen( infilename, "r" );
     if ( !infile ) return 0;
-   
+
     int count = 0;
     for( ;; ) {
       int c = fgetc( infile );
@@ -5615,7 +6759,7 @@ double** readmatrix( char* infilename, size_t *n, size_t *m )
     }
     count += 512;
     char line[count];
-  
+
     rewind( infile );
     fgets( line, sizeof( line ), infile );
     char *scan = line;
@@ -5626,10 +6770,10 @@ double** readmatrix( char* infilename, size_t *n, size_t *m )
       scan += offset;
      (*m)++;
     }
-  
+
     *n = 1;
     while ( fgets( line, sizeof( line ), infile ) ) (*n)++;
-  
+
     rewind( infile );
     double** data = getmatrix( *n, *m, 0.0 );
     for( size_t i = 1; i <= *n; i++ ) {
@@ -5654,6 +6798,9 @@ char* getdatetime( void )
     return asctime( tm );
   #endif
 }
+
+
+
 
 size_t setstarttime( void )
 // return current time in time_t format
@@ -5690,6 +6837,7 @@ void lowercase( char* str )
     str[i] = tolower( chr );
     i++;
   }
+					  
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------

@@ -7,6 +7,7 @@
 #' @param \dots additional arguments to be passed.
 #'
 #' @return This function returns an object of the class \code{lpca} with components:
+#' \item{theta}{Predicted canonical values for the test set}
 #' \item{Yhat}{Predicted values for the test set}
 #' \item{devr}{Estimated prediction deviance for separate responses}
 #' \item{devtot}{Estimated prediction deviance for all responses}
@@ -53,6 +54,7 @@ predict.lpca = function(object, newX, newY = NULL,...){
   }
   # make output object
   output = list(
+    theta = theta,
     Yhat = Yhat,
     devr = devr,
     devtot = devtot,

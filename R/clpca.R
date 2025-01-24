@@ -1,12 +1,14 @@
-#' Cumulative Logistic (Restrcited) PCA
+#' Cumulative Logistic (Restricted) PCA
 #'
 #' @param Y An N times R ordinal matrix  .
 #' @param X An N by P matrix with predictor variables
 #' @param S Positive number indicating the dimensionality of the solution
+#' @param start Starting values for U or B and V
 #' @param lambda if TRUE does lambda scaling (see Understanding Biplots, p24)
 #' @param trace tracing information during iterations
 #' @param maxiter maximum number of iterations
 #' @param dcrit convergence criterion
+
 #' @return Y Matrix Y from input
 #' @return Xoriginal Matrix X from input
 #' @return X Scaled X matrix
@@ -34,7 +36,7 @@
 #' @importFrom MASS polr
 #' @export
 
-clpca <- function(Y, X = NULL, S = 2, lambda = FALSE, trace = FALSE, maxiter = 65536, dcrit = 1e-6){
+clpca <- function(Y, X = NULL, S = 2, start = NULL, lambda = FALSE, trace = FALSE, maxiter = 65536, dcrit = 1e-6){
 
   cal = match.call()
 
@@ -62,11 +64,18 @@ clpca <- function(Y, X = NULL, S = 2, lambda = FALSE, trace = FALSE, maxiter = 6
     xnames = NULL
 
     # starting values - PCA on data
-    udv = svd(scale(Y, center = TRUE, scale = FALSE))
-    U = matrix(udv$u[, 1:S], N, S)
-    V = matrix(udv$v[, 1:S], R, S)
-    D = diag(udv$d[1:S], nrow = S, ncol = S)
-    theta = U %*% D %*% t(V)
+    if(is.list(start)){
+      U = start$U
+      V = start$V
+      theta = U %*% t(V)
+    }
+    else{
+      udv = svd(scale(Y, center = TRUE, scale = FALSE))
+      U = matrix(udv$u[, 1:S], N, S)
+      V = matrix(udv$v[, 1:S], R, S)
+      D = diag(udv$d[1:S], nrow = S, ncol = S)
+      theta = U %*% D %*% t(V)
+    }
 
     m = list()
     dev = rep(NA, R)
@@ -105,7 +114,7 @@ clpca <- function(Y, X = NULL, S = 2, lambda = FALSE, trace = FALSE, maxiter = 6
 
       # compute deviance
       dev.new <- sum(dev)
-      if (trace) {cat(iter, dev.new, (2*(dev.old - dev.new)/(dev.old + dev.new)), "\n")}
+      if (trace) {cat(iter, dev.old, dev.new, (2*(dev.old - dev.new)/(dev.old + dev.new)), "\n")}
       if ( (2*(dev.old - dev.new)/(dev.old + dev.new)) < dcrit ) break
       if (iter == maxiter) warning("Maximum number of iterations reached - not converged (yet)")
       dev.old = dev.new
@@ -142,9 +151,15 @@ clpca <- function(Y, X = NULL, S = 2, lambda = FALSE, trace = FALSE, maxiter = 6
     iRxX = iRx %*% t(X)
 
     # starting values
-    udv = svd(iRxX %*% scale(Y, center = TRUE, scale = FALSE))
-    B = iRx %*% matrix(udv$u[, 1:S], P, S) * sqrt(N)
-    V = matrix(udv$v[, 1:S], R, S) %*% diag(udv$d[1:S], nrow = S, ncol = S) / sqrt(N)
+    if(is.list(start)){
+      B = start$B
+      V = start$V
+    }
+    else{
+      udv = svd(iRxX %*% scale(Y, center = TRUE, scale = FALSE))
+      B = iRx %*% matrix(udv$u[, 1:S], P, S) * sqrt(N)
+      V = matrix(udv$v[, 1:S], R, S) %*% diag(udv$d[1:S], nrow = S, ncol = S) / sqrt(N)
+    }
 
     theta = X %*% B %*% t(V)
 
@@ -189,7 +204,7 @@ clpca <- function(Y, X = NULL, S = 2, lambda = FALSE, trace = FALSE, maxiter = 6
       # compute deviance
       dev.new <- sum(dev)
 
-      if (trace) {cat(iter, dev.new, (2*(dev.old - dev.new)/(dev.old + dev.new)), "\n")}
+      if (trace) {cat(iter, dev.old, dev.new, (2*(dev.old - dev.new)/(dev.old + dev.new)), "\n")}
       if ((2*(dev.old - dev.new)/(dev.old + dev.new)) < dcrit) break
       if (iter == maxiter) warning("Maximum number of iterations reached - not converged (yet)")
       dev.old = dev.new
